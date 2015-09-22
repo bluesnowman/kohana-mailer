@@ -17,16 +17,17 @@
  * limitations under the License.
  */
 
-namespace Ziminji {
+namespace Ziminji\Core {
 
 	/**
 	 * This class sends emails via the specified mail service.
 	 *
-	 * @package Messaging
-	 * @category Mailer
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core
+	 * @version 2015-09-21
 	 */
-	class Base_Mailer extends Kohana_Object implements Base_Mailer_Interface {
+	class Mailer extends Kohana_Object implements Base_Mailer_Interface {
 
 		/**
 		 * This variable stores an array of drivers.

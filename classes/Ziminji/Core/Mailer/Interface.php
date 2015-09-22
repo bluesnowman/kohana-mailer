@@ -17,16 +17,17 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Mailer {
+namespace Ziminji\Core\Mailer {
 
 	/**
 	 * This interface specifies the functions that a mailer driver class must implement.
 	 *
-	 * @package Messaging
-	 * @category Mailer
-	 * @version 2012-01-09
+	 * @access public
+	 * @interface
+	 * @package Ziminji\Core\Mailer
+	 * @version 2015-09-21
 	 */
-	interface Base_Mailer_Interface {
+	interface Interface {
 
 		/**
 		 * This function provides a way to pass specific options to the mail service.

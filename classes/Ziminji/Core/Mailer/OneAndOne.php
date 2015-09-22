@@ -17,28 +17,31 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Mailer {
+namespace Ziminji\Core\Mailer {
 
 	include_once(Kohana::find_file('vendor', 'PHPMailer/PHPMailerDriver', $ext = 'php'));
 
 	/**
-	 * This class send emails via the Gmail mail service.
+	 * This class send emails via the One And One mail service.
 	 *
-	 * @package Messaging
-	 * @category Mailer
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core\Mailer
+	 * @version 2015-09-21
 	 */
-	class Base_Mailer_Gmail extends PHPMailerDriver implements Base_Mailer_Interface {
+	class OneAndOne extends PHPMailerDriver implements Base_Mailer_Interface {
 
 		/**
 		 * This constructor initializes the driver for this mail service.
 		 *
 		 * @access public
 		 * @param array $config the configuration array
-		 * @return Mailer_Interface              an instance of the driver class
+		 * @return Mailer_Interface             an instance of the driver class
 		 */
 		public function __construct($config) {
 			parent::__construct($config['uri']['host'], $config['uri']['port'], $config['credentials']);
+			$this->mailer->IsSendmail();
+			$this->mailer->SMTPSecure = '';
 		}
 
 		/**

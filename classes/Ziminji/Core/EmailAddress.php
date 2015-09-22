@@ -17,45 +17,50 @@
  * limitations under the License.
  */
 
-namespace Ziminji {
+namespace Ziminji\Core {
 
 	/**
-	 * This class represents the credentials that are sent to a host to authenticate.
+	 * This class represents an email address.
 	 *
-	 * @package Messaging
-	 * @category Data Types
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core
+	 * @version 2015-09-21
 	 *
-	 * @abstract
+	 * @see http://msdn.microsoft.com/en-us/library/system.net.mail.mailaddress.aspx
 	 */
-	abstract class Base_Credentials extends Kohana_Object {
+	class EmailAddress extends Kohana_Object {
 
 		/**
-		 * This variable stores the user name.
+		 * This variable stores the email address.
 		 *
 		 * @access protected
 		 * @var string
 		 */
-		protected $username;
+		protected $email;
 
 		/**
-		 * This variable stores the password.
+		 * This variable stores the name associated with the email address.
 		 *
 		 * @access protected
 		 * @var string
 		 */
-		protected $password;
+		protected $name;
 
 		/**
 		 * This constructor creates an instance of this class.
 		 *
 		 * @access public
-		 * @param string $username the user name
-		 * @param string $password the password
+		 * @param string $email the email address
+		 * @param string $name the name
 		 */
-		public function __construct($username, $password) {
-			$this->username = $username;
-			$this->password = $password;
+		public function __construct($email, $name = '') {
+			$email = trim($email);
+			if (!preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/i', $email)) {
+				throw new Kohana_InvalidArgument_Exception('Message: Pattern mismatch. Reason: String is not an email address.', array(':email' => $email));
+			}
+			$this->email = $email;
+			$this->name = trim(preg_replace('/\R/', '', $name));
 		}
 
 		/**
@@ -69,25 +74,38 @@ namespace Ziminji {
 		 */
 		public function __get($key) {
 			switch ($key) {
-				case 'username':
-					return $this->username;
-				case 'password':
-					return $this->password;
+				case 'email':
+					return $this->email;
+				case 'name':
+					return $this->name;
 				default:
 					throw new Kohana_InvalidProperty_Exception('Message: Unable to get the specified property. Reason: Property :key is either inaccessible or undefined.', array(':key' => $key));
 			}
 		}
 
 		/**
-		 * This function returns the components as an associated array.
+		 * This function returns the components formatted as a string.
 		 *
 		 * @access public
-		 * @return array                            the components
+		 * @return string                           the components formatted as a string
+		 */
+		public function as_string() {
+			if (!empty($this->name)) {
+				return '"' . addslashes($this->name) . '" <' . $this->email . '>';
+			}
+			return $this->email;
+		}
+
+		/**
+		 * This function returns the components in an associated array.
+		 *
+		 * @access public
+		 * @return array                            the components stored in an array
 		 */
 		public function as_array() {
 			$array = array(
-				'username' => $this->username,
-				'password' => $this->password
+				'email' => $this->email,
+				'name' => $this->name
 			);
 			return $array;
 		}

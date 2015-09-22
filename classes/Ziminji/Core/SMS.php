@@ -17,16 +17,17 @@
  * limitations under the License.
  */
 
-namespace Ziminji {
+namespace Ziminji\Core {
 
 	/**
 	 * This class sends a text message to specified recipient(s).
 	 *
-	 * @package Messaging
-	 * @category SMS
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core
+	 * @version 2015-09-21
 	 */
-	class Base_SMS extends Kohana_Object {
+	class SMS extends Kohana_Object {
 
 		const ALLTEL = '@message.alltel.com';
 		const ATT = '@txt.att.net';

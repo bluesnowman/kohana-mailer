@@ -17,70 +17,17 @@
  * limitations under the License.
  */
 
-namespace Ziminji {
+namespace Ziminji\Core\Subscriber {
 
 	/**
-	 * This class handles subscriptions via the specified mail service.
+	 * This interface specifies the functions that a subscriber driver class must implement.
 	 *
-	 * @package Messaging
-	 * @category Subscriber
-	 * @version 2012-01-09
+	 * @access public
+	 * @interface
+	 * @package Ziminji\Core\Subscriber
+	 * @version 2015-09-21
 	 */
-	class Base_Subscriber extends Kohana_Object {
-
-		/**
-		 * This variable stores the configuration settings.
-		 *
-		 * @access protected
-		 * @var array
-		 */
-		protected $config = array();
-
-		/**
-		 * This variable stores an instance of the specified driver class.
-		 *
-		 * @access protected
-		 * @var string
-		 */
-		protected $driver = null;
-
-		/**
-		 * This constructor initializes the driver specified in the configuration array.
-		 *
-		 * @access public
-		 * @param array $config the configuration array
-		 */
-		public function __construct($config = array()) {
-			// Loads configurations
-			if (empty($config)) {
-				$group = 'mailer.default';
-				if (($this->config = Kohana::$config->load($group)) === null) {
-					throw new Kohana_Exception('Undefined group :group', array(':group' => $group));
-				}
-			}
-			else {
-				if (is_string($config)) {
-					$group = 'mailer.' . $config;
-					if (($this->config = Kohana::$config->load($group)) === null) {
-						throw new Kohana_Exception('Undefined group :group', array(':group' => $group));
-					}
-				}
-				else {
-					$this->config = $config;
-				}
-			}
-
-			// Sets the driver class name
-			$driver = 'Subscriber_' . $this->config['driver'];
-
-			// Initializes the driver
-			$this->driver = new $driver($this->config);
-
-			// Validates the driver
-			if (!($this->driver instanceof Base_Subscriber_Interface)) {
-				throw new Kohana_Exception('Cannot cast class :class to interface :interface', array(':class' => $driver, ':interface' => 'Base_Subscriber_Interface'));
-			}
-		}
+	interface Interface {
 
 		/**
 		 * This function will set the mailing list.
@@ -88,9 +35,7 @@ namespace Ziminji {
 		 * @access public
 		 * @param string $mailing_list the key used to identify the mailing list
 		 */
-		public function set_mailing_list($mailing_list) {
-			$this->driver->set_mailing_list($mailing_list);
-		}
+		public function set_mailing_list($mailing_list);
 
 		/**
 		 * This function sets the subscriber's email and related data.
@@ -99,9 +44,7 @@ namespace Ziminji {
 		 * @param string $email the subscriber's email address
 		 * @param array $data the data to be sent (e.g. first_name, last_name, address_1, address_2, city, state, postal_code, country, phone)
 		 */
-		public function set_subscriber($email, $data = null) {
-			$this->driver->set_subscriber($email, $data);
-		}
+		public function set_subscriber($email, $data = null);
 
 		/**
 		 * This function sets the content type for the email.
@@ -110,9 +53,7 @@ namespace Ziminji {
 		 * @param string $mime the content type (either "multipart/mixed", "text/html",
 		 *                                          or "text/plain")
 		 */
-		public function set_content_type($mime) {
-			$this->driver->set_content_type($mime);
-		}
+		public function set_content_type($mime);
 
 		/**
 		 * This function will cause a notification email to be sent upon success.
@@ -121,9 +62,7 @@ namespace Ziminji {
 		 * @param boolean send                      whether a notification email should be sent
 		 * @param Mailer $mailer the mail service to be used
 		 */
-		public function do_notify($send, $mailer = null) {
-			$this->driver->do_notify($send, $mailer);
-		}
+		public function do_notify($send, $mailer = null);
 
 		/**
 		 * This function will attempt to subscribe the recipient(s) to the specified mailing list.
@@ -134,9 +73,7 @@ namespace Ziminji {
 		 * @return boolean                          whether the email address was successfully added to the
 		 *                                          specified mailing list
 		 */
-		public function subscribe($force = false) {
-			return $this->driver->subscribe($force);
-		}
+		public function subscribe($force = false);
 
 		/**
 		 * This function will unsubscribe the specified email address from the specified mailing list.
@@ -145,9 +82,7 @@ namespace Ziminji {
 		 * @param boolean $delete whether to delete the subscription completely
 		 * @return boolean                          whether the subscriber was unsubscribed
 		 */
-		public function unsubscribe($delete = false) {
-			return $this->driver->unsubscribe($delete);
-		}
+		public function unsubscribe($delete = false);
 
 		/**
 		 * This function returns the last error reported.
@@ -155,9 +90,7 @@ namespace Ziminji {
 		 * @access public
 		 * @return array                            the last error reported
 		 */
-		public function get_error() {
-			return $this->driver->get_error();
-		}
+		public function get_error();
 
 	}
 

@@ -17,28 +17,51 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Mailer {
+namespace Ziminji\Core\Mailer {
 
 	/**
-	 * This class send emails via the Amazon's SES mail service.
+	 * This class send emails via the Postmark mail service.
 	 *
-	 * @package Messaging
-	 * @category Mailer
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core\Mailer
+	 * @version 2015-09-21
 	 *
-	 * @see http://www.phpclasses.org/browse/file/2446.html
-	 * @see http://www.webcheatsheet.com/PHP/send_email_text_html_attachment.php
+	 * @see http://developer.postmarkapp.com/developer-build.html
 	 */
-	class Base_Mailer_SendMail extends Kohana_Object implements Base_Mailer_Interface {
+	class Postmark extends Kohana_Object implements Base_Mailer_Interface {
 
 		/**
-		 * This variable stores a list of all recipients to received the email
-		 * message.
+		 * This variable stores the URL to the mail service.
+		 *
+		 * @access protected
+		 * @var string
+		 */
+		protected $url = null;
+
+		/**
+		 * This variable stores the API key.
+		 *
+		 * @access protected
+		 * @var string
+		 */
+		protected $api_key = null;
+
+		/**
+		 * This variable stores the tags assigned to the email.
 		 *
 		 * @access protected
 		 * @var array
 		 */
-		protected $recipients = array();
+		protected $tags = array();
+
+		/**
+		 * This variable stores the number of recipients added.
+		 *
+		 * @access protected
+		 * @var integer
+		 */
+		protected $recipient = null;
 
 		/**
 		 * This variable stores a list of email addresses (and names) to be carbon copied.
@@ -79,6 +102,14 @@ namespace Ziminji\Mailer {
 		 * @var string
 		 */
 		protected $subject = '(no subject)';
+
+		/**
+		 * This variable stores the tag assigned to the email.
+		 *
+		 * @access protected
+		 * @var string
+		 */
+		protected $tag = '';
 
 		/**
 		 * This variable stores the content type of the body in the email message.
@@ -128,6 +159,8 @@ namespace Ziminji\Mailer {
 		 * @return Mailer_Interface             an instance of the driver class
 		 */
 		public function __construct($config) {
+			$this->url = $config['url'];
+			$this->api_key = $config['api-key'];
 			if (isset($config['sender'])) {
 				$this->set_sender($config['sender']);
 			}
@@ -146,7 +179,9 @@ namespace Ziminji\Mailer {
 		 * @param array $options any special options for the mail service
 		 */
 		public function set_options(Array $options) {
-			// does nothing
+			if (isset($options['tags'])) {
+				$this->tags = array_merge($options['tags'], $this->tags);
+			}
 		}
 
 		/**
@@ -158,8 +193,11 @@ namespace Ziminji\Mailer {
 		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_recipient(EmailAddress $address) {
-			$this->recipients[] = $address->as_string();
-			return true;
+			if (is_null($this->recipient)) {
+				$this->recipient = $address->as_string();
+				return true;
+			}
+			return $this->add_cc($address);
 		}
 
 		/**
@@ -234,7 +272,7 @@ namespace Ziminji\Mailer {
 		 *                                      or "text/plain")
 		 */
 		public function set_content_type($mime) {
-			$this->content_type = strtolower($mime);
+			$this->content_type = $mime;
 		}
 
 		/**
@@ -265,7 +303,11 @@ namespace Ziminji\Mailer {
 		 * @param boolean                       whether the attachment is attached to the email message
 		 */
 		public function add_attachment(Attachment $attachment) {
-			$this->attachments[] = $attachment;
+			$this->attachments[] = array(
+				'Name' => $attachment->name,
+				'ContentType' => $attachment->mime,
+				'Content' => $attachment->data
+			);
 			return true;
 		}
 
@@ -298,100 +340,48 @@ namespace Ziminji\Mailer {
 				if (empty($this->sender)) {
 					throw new Exception('Failed to send email because no sender has been set.');
 				}
-				if (empty($this->recipients)) {
+
+				if (empty($this->recipient)) {
 					throw new Exception('Failed to send email because no recipient has been set.');
 				}
+
+				if ((1 + count($this->cc) + count($this->bcc)) > 20) { // The 1 is for the recipient.
+					throw new Exception("Failed to send email because too many email recipients have been set.");
+				}
+
 				if (empty($this->message)) {
 					throw new Exception('Failed to send email because no message has been set.');
 				}
-				$headers = "MIME-Version: 1.0\r\n";
-				$headers .= "From: {$this->sender}\r\n";
-				if (!empty($this->reply_to)) {
-					$headers .= "Reply-To: {$this->reply_to}\r\n";
-				}
-				if (count($this->cc) > 0) {
-					$headers .= 'Cc: ' . implode(', ', $this->cc) . "\r\n";
-				}
-				if (count($this->bcc) > 0) {
-					$headers .= 'Bcc: ' . implode(', ', $this->bcc) . "\r\n";
-				}
-				$headers .= 'Date: ' . date('r') . "\r\n";
-				$headers .= "Accept-Language: en-US\r\n";
-				$headers .= "Content-Language: en-US\r\n";
 
-				$boundary = md5(date('r', time()));
+				$params = $this->prepare_data();
 
-				$content_type = $this->content_type;
+				$headers = array(
+					'Accept: application/json',
+					'Content-Type: application/json',
+					'X-Postmark-Server-Token: ' . $this->api_key
+				);
 
-				if (!empty($this->attachments)) {
-					$content_type = 'multipart/mixed';
-				}
+				$curl = curl_init();
+				curl_setopt($curl, CURLOPT_URL, $this->url);
+				curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+				curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
+				curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
-				$message = '';
-				switch ($content_type) {
-					case 'multipart/mixed':
-						$headers .= "Content-Type: multipart/mixed; boundary=\"PHP-mixed-{$boundary}\"\r\n";
-						//$headers .= "\r\n";
-						$message .= "--PHP-mixed-{$boundary}\r\n";
-						if ($this->content_type == 'text/html') {
-							$message .= "Content-Type: multipart/alternative; boundary=\"PHP-alt-{$boundary}\"\r\n";
-							$message .= "\r\n";
-							$message .= "--PHP-alt-{$boundary}\r\n";
-							$message .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
-							$message .= "Content-Transfer-Encoding: 7bit\r\n";
-							$message .= $this->message;
-							$message .= "\r\n";
-							$message .= "--PHP-alt-{$boundary}\r\n";
-							$message .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-							$message .= "Content-Transfer-Encoding: 7bit\r\n";
-							$message .= "\r\n";
-							$message .= (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
-							$message .= "\r\n";
-							$message .= "--PHP-alt-{$boundary}--\r\n";
-						}
-						else {
-							$message .= "--PHP-mixed-{$boundary}\r\n";
-							$message .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-							$message .= "Content-Transfer-Encoding: 7bit\r\n";
-							$message .= "\r\n";
-							$message .= $this->message;
-							$message .= "\r\n";
-						}
-						foreach ($this->attachments as $attachment) {
-							$message .= "--PHP-mixed-{$boundary}\r\n";
-							$message .= "Content-Type: {$attachment->mime}; name=\"{$attachment->name}\"\r\n";
-							$message .= "Content-Transfer-Encoding: {$attachment->encoding}\r\n";
-							$message .= "Content-Disposition: attachment; filename=\"{$attachment->name}\"\r\n";
-							$message .= "\r\n";
-							$message .= $attachment->data;
-							$message .= "\r\n";
-						}
-						$message .= "--PHP-mixed-{$boundary}--\r\n";
-						break;
-					case 'text/html':
-						$headers .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
-						$headers .= "Content-Transfer-Encoding: 7bit\r\n";
-						$message .= "\r\n";
-						$message .= $this->message;
-						$message .= "\r\n";
-						break;
-					case 'text/plain':
-						$headers .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-						$headers .= "Content-Transfer-Encoding: 7bit\r\n";
-						$message .= "\r\n";
-						$message .= $this->message;
-						$message .= "\r\n";
-						break;
-					default:
-						throw new Exception('Mail service does not accept the specified content type.');
-						break;
+				$response = curl_exec($curl);
+
+				$error = curl_error($curl);
+
+				if (!empty($error)) {
+					throw new Exception("Failed to send email for the following reason: {$error}");
 				}
 
-				$recipients = implode(', ', $this->recipients);
+				$status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+				curl_close($curl);
 
-				$sent = @mail($recipients, $this->subject, $message, $headers);
-				if (!$sent) {
-					throw new Exception('Failed to deliver email.');
+				if (!$this->is_successful($status_code)) {
+					$message = json_decode($response)->Message;
+					throw new Exception("Failed to send email. Mail service returned HTTP status code {$status_code} with message: {$message}");
 				}
 			}
 			catch (Exception $ex) {
@@ -409,7 +399,7 @@ namespace Ziminji\Mailer {
 		 * This function returns the last error reported.
 		 *
 		 * @access public
-		 * @return array                            the last error reported
+		 * @return array                        the last error reported
 		 */
 		public function get_error() {
 			return $this->error;
@@ -423,6 +413,73 @@ namespace Ziminji\Mailer {
 		 */
 		public function log($log) {
 			//$this->log = $log;
+		}
+
+		///////////////////////////////////////////////////////////////HELPERS//////////////////////////////////////////////////////////////
+
+		/**
+		 * This function prepares the data for sending it to the Web service.
+		 *
+		 * @access protected
+		 * @return array                        the data array
+		 */
+		protected function prepare_data() {
+			$data = array();
+
+			$data['From'] = $this->sender;
+
+			if (!is_null($this->reply_to)) {
+				$data['ReplyTo'] = $this->reply_to;
+			}
+
+			$data['To'] = $this->recipient;
+
+			if (!empty($this->cc)) {
+				$data['Cc'] = implode(',', $this->cc);
+			}
+
+			if (!empty($this->bcc)) {
+				$data['Bcc'] = implode(',', $this->bcc);
+			}
+
+			$data['Subject'] = $this->subject;
+
+			if (!empty($this->tags)) {
+				$data['Tag'] = $this->tags[0];
+			}
+
+			switch ($this->content_type) {
+				case 'multipart/mixed':
+					$data['HtmlBody'] = $this->message;
+					$data['TextBody'] = (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
+					break;
+				case 'text/html':
+					$data['HtmlBody'] = $this->message;
+					break;
+				case 'text/plain':
+					$data['TextBody'] = $this->message;
+					break;
+				default:
+					throw new Exception('Failed to send email because mime type is unknown.');
+					break;
+			}
+
+			if (!empty($this->attachments)) {
+				$data['Attachments'] = $this->attachments;
+			}
+
+			return $data;
+		}
+
+		/**
+		 * This function tests for whether the response status code is in the 200's (i.e. between 200-299).
+		 *
+		 * @access protected
+		 * @param integer $value the response's status code
+		 * @return boolean                      whether the specified status code is in the 200's
+		 */
+		protected function is_successful($status_code) {
+			return intval($status_code / 100) == 2;
 		}
 
 	}

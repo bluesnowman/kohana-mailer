@@ -17,20 +17,19 @@
  * limitations under the License.
  */
 
-namespace Ziminji {
+namespace Ziminji\Core {
 
 	/**
 	 * This class represents an email attachment.
 	 *
-	 * @package Messaging
-	 * @category Data Types
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core
+	 * @version 2015-09-21
 	 *
 	 * @see http://msdn.microsoft.com/en-us/library/system.net.mail.attachment.aspx
-	 *
-	 * @abstract
 	 */
-	abstract class Base_Attachment extends DataSource {
+	class Attachment extends \Ziminji\DataSource {
 
 		/**
 		 * This variable stores the name of the attachment.

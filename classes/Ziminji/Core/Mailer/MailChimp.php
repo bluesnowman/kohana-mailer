@@ -17,26 +17,64 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Mailer {
-
-	include_once(Kohana::find_file('vendor', 'WhatCounts/WhatCountsDriver', $ext = 'php'));
+namespace Ziminji\Core\Mailer {
 
 	/**
-	 * This class send emails via the What Counts mail service.
+	 * This class send emails via the Mail Chimp mail service.
 	 *
-	 * @package Messaging
-	 * @category Mailer
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core\Mailer
+	 * @version 2015-09-21
+	 *
+	 * @see http://admin.mailchimp.com/account/api
+	 * @see http://apidocs.mailchimp.com/sts/1.0/
+	 * @see http://apidocs.mailchimp.com/sts/1.0/sendemail.func.php
 	 */
-	class Base_Mailer_WhatCounts extends Kohana_Object implements Base_Mailer_Interface {
+	class MailChimp extends Kohana_Object implements Base_Mailer_Interface {
 
 		/**
-		 * This variable stores an instance of the What Counts driver class.
+		 * This variable stores an instance of the MailChimp driver class.
 		 *
 		 * @access protected
-		 * @var WhatCountsDriver
+		 * @var MailChimpDriver
 		 */
 		protected $mailer = null;
+
+		/**
+		 * This variable stores the URL to the mail service.
+		 *
+		 * @access protected
+		 * @var string
+		 */
+		protected $url = null;
+
+		/**
+		 * This variable stores the API key.
+		 *
+		 * @access protected
+		 * @var string
+		 */
+		protected $api_key = null;
+
+		/**
+		 * This variable stores the tags assigned to the email.
+		 *
+		 * @access protected
+		 * @var array
+		 */
+		protected $tags = array();
+
+		/**
+		 * This variable stores what should be tracked via the mail service.
+		 *
+		 * @access protected
+		 * @var array
+		 */
+		protected $track = array(
+			'clicks' => false,
+			'opens' => false
+		);
 
 		/**
 		 * This variable stores a list of all recipients to received the email
@@ -51,25 +89,9 @@ namespace Ziminji\Mailer {
 		 * This variable stores the email address of the sender.
 		 *
 		 * @access protected
-		 * @var string
+		 * @var EmailAddress
 		 */
-		protected $sender = '';
-
-		/**
-		 * This variable stores the email address of the reply to.
-		 *
-		 * @access protected
-		 * @var string
-		 */
-		protected $reply_to = '';
-
-		/**
-		 * This variable stores the name of the mail list.
-		 *
-		 * @access protected
-		 * @var string
-		 */
-		protected $mailing_list = null;
+		protected $sender = null;
 
 		/**
 		 * This variable stores the subject of the email.
@@ -119,17 +141,14 @@ namespace Ziminji\Mailer {
 		 * @return Mailer_Interface             an instance of the driver class
 		 */
 		public function __construct($config) {
-			$this->mailer = new WhatCountsDriver($config['credentials']->username, $config['credentials']->password);
+			$this->url = $config['url'];
+			$this->api_key = $config['api-key'];
 			if (isset($config['sender'])) {
 				$this->set_sender($config['sender']);
 			}
-			if (isset($config['reply-to'])) {
-				$this->set_reply_to($config['reply-to']);
+			if (isset($config['options'])) {
+				$this->set_options($config['options']);
 			}
-			else {
-				$this->reply_to = $this->sender;
-			}
-			$this->mailing_list = $this->mailer->getListByName($config['mailing_list']);
 		}
 
 		/**
@@ -139,7 +158,15 @@ namespace Ziminji\Mailer {
 		 * @param array $options any special options for the mail service
 		 */
 		public function set_options(Array $options) {
-			// does nothing
+			if (isset($options['tags'])) {
+				$this->tags = array_merge($options['tags'], $this->tags);
+			}
+			if (isset($options['track']['clicks'])) {
+				$this->track['clicks'] = $options['track']['clicks'];
+			}
+			if (isset($options['track']['opens'])) {
+				$this->track['opens'] = $options['track']['opens'];
+			}
 		}
 
 		/**
@@ -151,7 +178,7 @@ namespace Ziminji\Mailer {
 		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_recipient(EmailAddress $address) {
-			$this->recipients[] = $address->email;
+			$this->recipients[] = $address;
 			return true;
 		}
 
@@ -163,7 +190,7 @@ namespace Ziminji\Mailer {
 		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_cc(EmailAddress $address) {
-			$this->recipients[] = $address->email;
+			$this->recipients[] = $address;
 			return true;
 		}
 
@@ -175,7 +202,7 @@ namespace Ziminji\Mailer {
 		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_bcc(EmailAddress $address) {
-			$this->recipients[] = $address->email;
+			$this->recipients[] = $address;
 			return true;
 		}
 
@@ -187,7 +214,7 @@ namespace Ziminji\Mailer {
 		 * @return boolean                      whether the sender was set
 		 */
 		public function set_sender(EmailAddress $address) {
-			$this->sender = $address->as_string();
+			$this->sender = $address;
 			return true;
 		}
 
@@ -199,8 +226,7 @@ namespace Ziminji\Mailer {
 		 * @return boolean                      whether the reply-to was set
 		 */
 		public function set_reply_to(EmailAddress $address) {
-			$this->reply_to = $address->as_string();
-			return true;
+			return false;
 		}
 
 		/**
@@ -227,12 +253,7 @@ namespace Ziminji\Mailer {
 		 *                                      or "text/plain")
 		 */
 		public function set_content_type($mime) {
-			/**
-			 * "multipart/mixed" = 99
-			 * "text/html" = 2
-			 * "text/plain" = 1
-			 */
-			$this->content_type = $mime;
+			$this->content_type = strtolower($mime);
 		}
 
 		/**
@@ -296,45 +317,68 @@ namespace Ziminji\Mailer {
 		 */
 		public function send() {
 			try {
-				if (!isset($this->mailing_list['listID'])) {
-					throw new Exception('Failed to send email because no mailing list has been set.');
-				}
-				if (empty($this->sender)) {
+				if (is_null($this->sender)) {
 					throw new Exception('Failed to send email because no sender has been set.');
 				}
+
 				if (empty($this->recipients)) {
 					throw new Exception('Failed to send email because no recipient has been set.');
 				}
+
 				if (empty($this->message)) {
 					throw new Exception('Failed to send email because no message has been set.');
 				}
-				$message = '';
-				$html_message = '';
-				$text_message = '';
-				$format = null;
-				switch ($this->content_type) {
-					case 'multipart/mixed':
-						$html_message = urlencode($this->message);
-						$text_message = (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
-						$text_message = urlencode($text_message);
-						$format = 99;
-						break;
-					case 'text/html':
-						$html_message = urlencode($this->message);
-						$format = 2;
-						break;
-					default:
-						$message = $this->message;
-						$format = 1;
-						break;
+
+				if ($this->content_type == 'multipart/mixed') {
+					$alt_message = (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
 				}
-				$template_id = '';
-				$data = '';
-				foreach ($this->recipients as $recipient) {
-					$sent = $this->mailer->send($this->mailing_list['listID'], $recipient, $format, $this->reply_to, $template_id, $message, $text_message, $html_message, $this->sender, $this->subject, $data);
-					if (!$sent) {
-						// TODO Modify vendor/WhatCounts/WhatCountsDriver.php to get the error message from the response variable
-						throw new Exception("Failed to send message to: {$recipient}");
+				else {
+					$alt_message = '';
+				}
+
+				for ($i = 0; $i < count($this->recipients); $i++) {
+					$params = array(
+						'apikey' => $this->api_key,
+						'message' => array(
+							'html' => $this->message,
+							'text' => $alt_message,
+							'subject' => $this->subject,
+							'from_email' => $this->sender->email,
+							'from_name' => $this->sender->name,
+							'to_email' => array($this->recipients[$i]->email),
+							'to_name' => array($this->recipients[$i]->name)
+						),
+						'track_opens' => $this->track['opens'],
+						'track_clicks' => $this->track['clicks'],
+						'tags' => $this->tags
+					);
+
+					$curl = curl_init();
+					curl_setopt($curl, CURLOPT_URL, $this->url);
+					curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+					curl_setopt($curl, CURLOPT_POST, true);
+					curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
+					$response = curl_exec($curl);
+
+					$json = json_decode($response);
+
+					$error = curl_error($curl);
+
+					if (!empty($error)) {
+						throw new Exception("Failed to send email for the following reason: {$error}");
+					}
+
+					$status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+					curl_close($curl);
+
+					if (!$this->is_successful($status_code)) {
+						$message = preg_replace('/' . $this->api_key . '/', 'XXXXXXXXXXXXXXXXXXXXXXXXXX', $json->message);
+						throw new Exception("Failed to send email. Mail service returned HTTP status code {$status_code}. {$message}");
+					}
+
+					if (!preg_match('/^(sent|queued)$/', $json->status)) {
+						$message = preg_replace('/' . $this->api_key . '/', 'XXXXXXXXXXXXXXXXXXXXXXXXXX', $json->message);
+						throw new Exception("Failed to send email. Mail service returned AWS code {$json->aws_code} with message: {$message}");
 					}
 				}
 			}
@@ -366,6 +410,19 @@ namespace Ziminji\Mailer {
 		 */
 		public function log($log) {
 			//$this->log = $log;
+		}
+
+		///////////////////////////////////////////////////////////////HELPERS//////////////////////////////////////////////////////////////
+
+		/**
+		 * This function tests for whether the response status code is in the 200's (i.e. between 200-299).
+		 *
+		 * @access protected
+		 * @param integer $value the response's status code
+		 * @return boolean                          whether the specified status code is in the 200's
+		 */
+		protected function is_successful($status_code) {
+			return intval($status_code / 100) == 2;
 		}
 
 	}

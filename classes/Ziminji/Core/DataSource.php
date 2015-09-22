@@ -17,14 +17,15 @@
  * limitations under the License.
  */
 
-namespace Ziminji {
+namespace Ziminji\Core {
 
 	/**
 	 * This class represents a binary data source.
 	 *
-	 * @package Messaging
-	 * @category Data Types
-	 * @version 2012-01-09
+	 * @access public
+	 * @class
+	 * @package Ziminji\Core
+	 * @version 2015-09-21
 	 *
 	 * @see http://developer.apple.com/library/mac/#documentation/Cocoa/Reference/Foundation/Classes/NSData_Class/Reference/Reference.html
 	 * @see http://download.oracle.com/javase/6/docs/api/javax/activation/DataSource.html
@@ -32,7 +33,7 @@ namespace Ziminji {
 	 * @see http://download.oracle.com/javase/6/docs/api/javax/activation/URLDataSource.html
 	 * @see http://msdn.microsoft.com/en-us/library/system.net.mail.attachment.aspx
 	 */
-	abstract class Base_DataSource extends Kohana_Object {
+	class DataSource extends Kohana_Object {
 
 		/**
 		 * This constant stores the data source type for a file.
