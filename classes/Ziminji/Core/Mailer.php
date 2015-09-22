@@ -27,7 +27,7 @@ namespace Ziminji\Core {
 	 * @package Ziminji\Core
 	 * @version 2015-09-21
 	 */
-	class Mailer extends \Ziminji\Core\Object implements Base_Mailer_Interface {
+	class Mailer extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
 
 		/**
 		 * This variable stores an array of drivers.
@@ -41,7 +41,6 @@ namespace Ziminji\Core {
 		 * This constructor initializes the driver for the specified mail service.
 		 *
 		 * @access public
-		 * @return Mailer                               an instance of this class
 		 */
 		public function __construct() {
 			// Initializes an array to temporarily store all mailer configurations.
@@ -50,7 +49,7 @@ namespace Ziminji\Core {
 			if (func_num_args() < 1) {
 				$group = 'mailer.default';
 				if (($config = Kohana::$config->load($group)) === null) {
-					throw new Kohana_InvalidProperty_Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
 				}
 				$params[] = $config;
 			}
@@ -60,13 +59,13 @@ namespace Ziminji\Core {
 					if (is_string($config)) {
 						$group = 'mailer.' . $config;
 						if (($config = Kohana::$config->load($group)) === null) {
-							throw new Kohana_InvalidProperty_Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
+							throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
 						}
 						$params[] = $config;
 					}
 					else {
 						if (!is_array($config) || empty($config)) {
-							throw new Kohana_InvalidProperty_Exception('Message: Cannot load configuration. Reason: Invalid configuration array.', array(':config', Debug::vars($config)));
+							throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Invalid configuration array.', array(':config', Debug::vars($config)));
 						}
 						$params[] = $config;
 					}
@@ -90,7 +89,7 @@ namespace Ziminji\Core {
 				// Initializes the driver
 				$this->driver[$i] = new $driver($params[$i]);
 				// Validates the driver
-				if (!($this->driver[$i] instanceof Base_Mailer_Interface)) {
+				if (!($this->driver[$i] instanceof \Ziminji\Core\IMailer)) {
 					throw new Kohana_ClassCast_Exception('Message: Cannot cast to interface.  Reason: Class :class does not implement interface :interface.', array(':class' => $driver, ':interface' => 'Base_Mailer_Interface'));
 				}
 			}
@@ -119,12 +118,12 @@ namespace Ziminji\Core {
 			if (is_string($list)) {
 				$group = 'mailer-lists.' . $list;
 				if (($list = Kohana::$config->load($group)) === null) {
-					throw new Kohana_InvalidProperty_Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
 				}
 			}
 			foreach ($list as $category => $recipients) {
 				foreach ($recipients as $recipient) {
-					$email = new EmailAddress($recipient['email'], ((isset($recipient['name'])) ? $recipient['name'] : ''));
+					$email = new \Ziminji\Core\EmailAddress($recipient['email'], ((isset($recipient['name'])) ? $recipient['name'] : ''));
 					switch (strtolower($category)) {
 						case 'recipient':
 							$this->add_recipient($email);
@@ -146,10 +145,10 @@ namespace Ziminji\Core {
 		 * the email.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                              whether the recipient was added
 		 */
-		public function add_recipient(EmailAddress $address) {
+		public function add_recipient(\Ziminji\Core\EmailAddress $address) {
 			$successful = true;
 			foreach ($this->driver as $driver) {
 				$good = $driver->add_recipient($address);
@@ -164,10 +163,10 @@ namespace Ziminji\Core {
 		 * This function will carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                              whether the recipient was added
 		 */
-		public function add_cc(EmailAddress $address) {
+		public function add_cc(\Ziminji\Core\EmailAddress $address) {
 			$successful = true;
 			foreach ($this->driver as $driver) {
 				$good = $driver->add_cc($address);
@@ -182,10 +181,10 @@ namespace Ziminji\Core {
 		 * This function will blind carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                              whether the recipient was added
 		 */
-		public function add_bcc(EmailAddress $address) {
+		public function add_bcc(\Ziminji\Core\EmailAddress $address) {
 			$successful = true;
 			foreach ($this->driver as $driver) {
 				$good = $driver->add_bcc($address);
@@ -200,10 +199,10 @@ namespace Ziminji\Core {
 		 * This function sets the sender of the email message.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                              whether the sender was set
 		 */
-		public function set_sender(EmailAddress $address) {
+		public function set_sender(\Ziminji\Core\EmailAddress $address) {
 			$successful = true;
 			foreach ($this->driver as $driver) {
 				$good = $driver->set_sender($address);
@@ -218,10 +217,10 @@ namespace Ziminji\Core {
 		 * This function sets the reply-to email address.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                              whether the reply-to was set
 		 */
-		public function set_reply_to(EmailAddress $address) {
+		public function set_reply_to(\Ziminji\Core\EmailAddress $address) {
 			$successful = true;
 			foreach ($this->driver as $driver) {
 				$good = $driver->set_reply_to($address);
@@ -285,10 +284,10 @@ namespace Ziminji\Core {
 		 * This function adds an attachment to the email message.
 		 *
 		 * @access public
-		 * @param Attachment $attachment the attachment to be added
+		 * @param \Ziminji\Core\Attachment $attachment the attachment to be added
 		 * @param boolean                               whether the attachment is attached to the email message
 		 */
-		public function add_attachment(Attachment $attachment) {
+		public function add_attachment(\Ziminji\Core\Attachment $attachment) {
 			$successful = true;
 			foreach ($this->driver as $driver) {
 				$good = $driver->add_attachment($attachment);
@@ -369,10 +368,10 @@ namespace Ziminji\Core {
 		 * This function sends a request to the specified email address for it to be verified.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address to be verified
+		 * @param \Ziminji\Core\EmailAddress $address the email address to be verified
 		 * @return boolean                              whether the request was sent
 		 */
-		public function request_email_verification(EmailAddress $address) {
+		public function request_email_verification(\Ziminji\Core\EmailAddress $address) {
 			return $this->driver[0]->request_email_verification($address);
 		}
 
