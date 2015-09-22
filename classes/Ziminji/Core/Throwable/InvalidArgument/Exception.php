@@ -17,27 +17,42 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core {
+namespace Ziminji\Core\Throwable\InvalidArgument {
 
 	/**
-	 * This class acts as the base class for a object.
+	 * This class indicates that an argument does not match with the expected value.
 	 *
 	 * @access public
 	 * @class
-	 * @package Ziminji\Core
+	 * @package Leap\Core\Throwable
 	 * @version 2015-09-21
 	 */
-	abstract class Object implements \Ziminji\Core\IObject {
+	class Exception extends \InvalidArgumentException implements \Ziminji\Core\IObject {
 
 		/**
-		 * This method returns a copy this object.
+		 * This variable stores the code associated with the exception.
+		 *
+		 * @access protected
+		 * @var int
+		 */
+		protected $code;
+
+		/**
+		 * This constructor creates a new invalid argument exception.
+		 *
+		 *     throw new Throwable\Runtime\Exception('Unable to find :uri', array(':uri' => $uri));
 		 *
 		 * @access public
-		 * @throws \Ziminji\Core\Throwable\UnimplementedMethod\Exception indicates the method has not be
-		 *                                                             implemented
+		 * @param string $message                                   the error message
+		 * @param array $variables                                  translation variables
+		 * @param integer $code                                     the exception code
 		 */
-		public function __clone() {
-			throw new \Ziminji\Core\Throwable\UnimplementedMethod\Exception('Method ":method" has not been implemented in class ":class."', array(':class' => get_called_class(), ':method' => __FUNCTION__));
+		public function __construct($message, array $variables = null, $code = 0) {
+			parent::__construct(
+				empty($variables) ? (string) $message : strtr( (string) $message, $variables),
+				(int) $code
+			);
+			$this->code = (int) $code; // Known bug: http://bugs.php.net/39615
 		}
 
 		/**
@@ -55,19 +70,19 @@ namespace Ziminji\Core {
 		 * @access public
 		 */
 		public function __destruct() {
-			// do nothing
+			unset($this->code);
 		}
 
 		/**
 		 * This method returns whether the specified object is equal to the called object.
 		 *
 		 * @access public
-		 * @param IObject $object                                   the object to be evaluated
+		 * @param \Leap\Core\IObject $object                        the object to be evaluated
 		 * @return boolean                                          whether the specified object is equal
 		 *                                                          to the called object
 		 */
 		public function __equals($object) {
-			return (($object !== null) && ($object instanceof \Ziminji\Core\IObject) && ((string) serialize($object) == (string) serialize($this)));
+			return (($object !== NULL) && ($object instanceof \Leap\Core\Throwable\InvalidArgument\Exception) && ((string) serialize($object) == (string) serialize($this)));
 		}
 
 		/**
@@ -81,23 +96,22 @@ namespace Ziminji\Core {
 		}
 
 		/**
-		 * This method returns the hash code for the object.
+		 * This method returns the current object's hash code.
 		 *
-		 * @access public
-		 * @return string                                           the hash code for the object
+		 * @return string                                           the current object's hash code
 		 */
 		public function __hashCode() {
 			return spl_object_hash($this);
 		}
 
 		/**
-		 * This method returns a string that represents the object.
+		 * This method returns the exception as a string.
 		 *
 		 * @access public
-		 * @return string                                           a string that represents the object
+		 * @return string                                           a string representing the exception
 		 */
 		public function __toString() {
-			return (string) serialize($this);
+			return \Leap\Core\Throwable\Runtime\Exception::text($this);
 		}
 
 	}

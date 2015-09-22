@@ -19,18 +19,25 @@
 
 namespace Ziminji\Core\Mailer {
 
+	include_once(Kohana::find_file('vendor', 'WhatCounts/WhatCountsDriver', $ext = 'php'));
+
 	/**
-	 * This class send emails via the Amazon's SES mail service.
+	 * This class send emails via the What Counts mail service.
 	 *
 	 * @access public
 	 * @class
 	 * @package Ziminji\Core\Mailer
 	 * @version 2015-09-21
-	 *
-	 * @see http://www.phpclasses.org/browse/file/2446.html
-	 * @see http://www.webcheatsheet.com/PHP/send_email_text_html_attachment.php
 	 */
-	class Base_Mailer_SendMail extends Kohana_Object implements Base_Mailer_Interface {
+	class WhatCounts extends \Ziminji\Core\Object implements Base_Mailer_Interface {
+
+		/**
+		 * This variable stores an instance of the What Counts driver class.
+		 *
+		 * @access protected
+		 * @var \WhatCounts\Driver
+		 */
+		protected $mailer = null;
 
 		/**
 		 * This variable stores a list of all recipients to received the email
@@ -40,22 +47,6 @@ namespace Ziminji\Core\Mailer {
 		 * @var array
 		 */
 		protected $recipients = array();
-
-		/**
-		 * This variable stores a list of email addresses (and names) to be carbon copied.
-		 *
-		 * @access protected
-		 * @var array
-		 */
-		protected $cc = array();
-
-		/**
-		 * This variable stores a list of email addresses (and names) to be carbon copied.
-		 *
-		 * @access protected
-		 * @var array
-		 */
-		protected $bcc = array();
 
 		/**
 		 * This variable stores the email address of the sender.
@@ -72,6 +63,14 @@ namespace Ziminji\Core\Mailer {
 		 * @var string
 		 */
 		protected $reply_to = '';
+
+		/**
+		 * This variable stores the name of the mail list.
+		 *
+		 * @access protected
+		 * @var string
+		 */
+		protected $mailing_list = null;
 
 		/**
 		 * This variable stores the subject of the email.
@@ -106,14 +105,6 @@ namespace Ziminji\Core\Mailer {
 		protected $alt_message = '';
 
 		/**
-		 * This variable stores a list of all attachments added.
-		 *
-		 * @access protected
-		 * @var array
-		 */
-		protected $attachments = array();
-
-		/**
 		 * This variable stores the last error message reported.
 		 *
 		 * @access protected
@@ -129,6 +120,7 @@ namespace Ziminji\Core\Mailer {
 		 * @return Mailer_Interface             an instance of the driver class
 		 */
 		public function __construct($config) {
+			$this->mailer = new WhatCountsDriver($config['credentials']->username, $config['credentials']->password);
 			if (isset($config['sender'])) {
 				$this->set_sender($config['sender']);
 			}
@@ -138,6 +130,7 @@ namespace Ziminji\Core\Mailer {
 			else {
 				$this->reply_to = $this->sender;
 			}
+			$this->mailing_list = $this->mailer->getListByName($config['mailing_list']);
 		}
 
 		/**
@@ -159,7 +152,7 @@ namespace Ziminji\Core\Mailer {
 		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_recipient(EmailAddress $address) {
-			$this->recipients[] = $address->as_string();
+			$this->recipients[] = $address->email;
 			return true;
 		}
 
@@ -171,7 +164,7 @@ namespace Ziminji\Core\Mailer {
 		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_cc(EmailAddress $address) {
-			$this->cc[] = $address->as_string();
+			$this->recipients[] = $address->email;
 			return true;
 		}
 
@@ -183,7 +176,7 @@ namespace Ziminji\Core\Mailer {
 		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_bcc(EmailAddress $address) {
-			$this->bcc[] = $address->as_string();
+			$this->recipients[] = $address->email;
 			return true;
 		}
 
@@ -235,7 +228,12 @@ namespace Ziminji\Core\Mailer {
 		 *                                      or "text/plain")
 		 */
 		public function set_content_type($mime) {
-			$this->content_type = strtolower($mime);
+			/**
+			 * "multipart/mixed" = 99
+			 * "text/html" = 2
+			 * "text/plain" = 1
+			 */
+			$this->content_type = $mime;
 		}
 
 		/**
@@ -266,8 +264,11 @@ namespace Ziminji\Core\Mailer {
 		 * @param boolean                       whether the attachment is attached to the email message
 		 */
 		public function add_attachment(Attachment $attachment) {
-			$this->attachments[] = $attachment;
-			return true;
+			$this->error = array(
+				'message' => 'Failed to add attachment because mail service does not support attachments',
+				'code' => 0
+			);
+			return false;
 		}
 
 		/**
@@ -296,6 +297,9 @@ namespace Ziminji\Core\Mailer {
 		 */
 		public function send() {
 			try {
+				if (!isset($this->mailing_list['listID'])) {
+					throw new Exception('Failed to send email because no mailing list has been set.');
+				}
 				if (empty($this->sender)) {
 					throw new Exception('Failed to send email because no sender has been set.');
 				}
@@ -305,94 +309,34 @@ namespace Ziminji\Core\Mailer {
 				if (empty($this->message)) {
 					throw new Exception('Failed to send email because no message has been set.');
 				}
-				$headers = "MIME-Version: 1.0\r\n";
-				$headers .= "From: {$this->sender}\r\n";
-				if (!empty($this->reply_to)) {
-					$headers .= "Reply-To: {$this->reply_to}\r\n";
-				}
-				if (count($this->cc) > 0) {
-					$headers .= 'Cc: ' . implode(', ', $this->cc) . "\r\n";
-				}
-				if (count($this->bcc) > 0) {
-					$headers .= 'Bcc: ' . implode(', ', $this->bcc) . "\r\n";
-				}
-				$headers .= 'Date: ' . date('r') . "\r\n";
-				$headers .= "Accept-Language: en-US\r\n";
-				$headers .= "Content-Language: en-US\r\n";
-
-				$boundary = md5(date('r', time()));
-
-				$content_type = $this->content_type;
-
-				if (!empty($this->attachments)) {
-					$content_type = 'multipart/mixed';
-				}
-
 				$message = '';
-				switch ($content_type) {
+				$html_message = '';
+				$text_message = '';
+				$format = null;
+				switch ($this->content_type) {
 					case 'multipart/mixed':
-						$headers .= "Content-Type: multipart/mixed; boundary=\"PHP-mixed-{$boundary}\"\r\n";
-						//$headers .= "\r\n";
-						$message .= "--PHP-mixed-{$boundary}\r\n";
-						if ($this->content_type == 'text/html') {
-							$message .= "Content-Type: multipart/alternative; boundary=\"PHP-alt-{$boundary}\"\r\n";
-							$message .= "\r\n";
-							$message .= "--PHP-alt-{$boundary}\r\n";
-							$message .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
-							$message .= "Content-Transfer-Encoding: 7bit\r\n";
-							$message .= $this->message;
-							$message .= "\r\n";
-							$message .= "--PHP-alt-{$boundary}\r\n";
-							$message .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-							$message .= "Content-Transfer-Encoding: 7bit\r\n";
-							$message .= "\r\n";
-							$message .= (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
-							$message .= "\r\n";
-							$message .= "--PHP-alt-{$boundary}--\r\n";
-						}
-						else {
-							$message .= "--PHP-mixed-{$boundary}\r\n";
-							$message .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-							$message .= "Content-Transfer-Encoding: 7bit\r\n";
-							$message .= "\r\n";
-							$message .= $this->message;
-							$message .= "\r\n";
-						}
-						foreach ($this->attachments as $attachment) {
-							$message .= "--PHP-mixed-{$boundary}\r\n";
-							$message .= "Content-Type: {$attachment->mime}; name=\"{$attachment->name}\"\r\n";
-							$message .= "Content-Transfer-Encoding: {$attachment->encoding}\r\n";
-							$message .= "Content-Disposition: attachment; filename=\"{$attachment->name}\"\r\n";
-							$message .= "\r\n";
-							$message .= $attachment->data;
-							$message .= "\r\n";
-						}
-						$message .= "--PHP-mixed-{$boundary}--\r\n";
+						$html_message = urlencode($this->message);
+						$text_message = (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
+						$text_message = urlencode($text_message);
+						$format = 99;
 						break;
 					case 'text/html':
-						$headers .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
-						$headers .= "Content-Transfer-Encoding: 7bit\r\n";
-						$message .= "\r\n";
-						$message .= $this->message;
-						$message .= "\r\n";
-						break;
-					case 'text/plain':
-						$headers .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-						$headers .= "Content-Transfer-Encoding: 7bit\r\n";
-						$message .= "\r\n";
-						$message .= $this->message;
-						$message .= "\r\n";
+						$html_message = urlencode($this->message);
+						$format = 2;
 						break;
 					default:
-						throw new Exception('Mail service does not accept the specified content type.');
+						$message = $this->message;
+						$format = 1;
 						break;
 				}
-
-				$recipients = implode(', ', $this->recipients);
-
-				$sent = @mail($recipients, $this->subject, $message, $headers);
-				if (!$sent) {
-					throw new Exception('Failed to deliver email.');
+				$template_id = '';
+				$data = '';
+				foreach ($this->recipients as $recipient) {
+					$sent = $this->mailer->send($this->mailing_list['listID'], $recipient, $format, $this->reply_to, $template_id, $message, $text_message, $html_message, $this->sender, $this->subject, $data);
+					if (!$sent) {
+						// TODO Modify vendor/WhatCounts/WhatCountsDriver.php to get the error message from the response variable
+						throw new Exception("Failed to send message to: {$recipient}");
+					}
 				}
 			}
 			catch (Exception $ex) {
@@ -402,7 +346,6 @@ namespace Ziminji\Core\Mailer {
 				);
 				return false;
 			}
-			$this->error = null;
 			return true;
 		}
 

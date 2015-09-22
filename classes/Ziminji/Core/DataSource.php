@@ -33,7 +33,7 @@ namespace Ziminji\Core {
 	 * @see http://download.oracle.com/javase/6/docs/api/javax/activation/URLDataSource.html
 	 * @see http://msdn.microsoft.com/en-us/library/system.net.mail.attachment.aspx
 	 */
-	class DataSource extends Kohana_Object {
+	class DataSource extends \Ziminji\Core\Object {
 
 		/**
 		 * This constant stores the data source type for a file.
@@ -104,25 +104,26 @@ namespace Ziminji\Core {
 		 * data source.
 		 *
 		 * @access public
-		 * @param enum $type the data source type (e.g. data, file, string, url)
-		 * @param mixed $source the data source
+		 * @param enum $type                                        the data source type (e.g. data, file,
+		 *                                                          string, url)
+		 * @param mixed $source                                     the data source
 		 */
 		public function __construct($type, $source) {
 			$type = strtolower($type);
 			if ($type == self::DATA_CONTENTS) {
-				if (!($source instanceof Base_Attachment)) {
-					throw new Kohana_InvalidArgument_Exception('Class is of wrong type', array(':source' => $source));
+				if (!($source instanceof \Ziminji\Core\Attachment)) {
+					throw new \Ziminji\Core\Throwable\InvalidArgument\Exception('Class is of wrong type', array(':source' => $source));
 				}
 				$this->type = $source->type;
 				$this->contents = $source->contents;
 			}
 			else {
 				if (!is_string($source)) {
-					throw new Kohana_InvalidArgument_Exception('Source is of wrong type', array(':source' => $source));
+					throw new \Ziminji\Core\Throwable\InvalidArgument\Exception('Source is of wrong type', array(':source' => $source));
 				}
 				if ($type == self::FILE_CONTENTS) {
 					if (!file_exists($source)) {
-						throw new Kohana_FileNotFound_Exception('Unable to load source :source', array(':source' => $source));
+						throw new \Ziminji\Core\Throwable\FileNotFound\Exception('Unable to load source :source', array(':source' => $source));
 					}
 					$this->contents = file_get_contents($source);
 				}
@@ -133,12 +134,12 @@ namespace Ziminji\Core {
 					else {
 						if ($type == self::URL_CONTENTS) {
 							if (!self::does_url_exists($source)) {
-								throw new Kohana_FileNotFound_Exception('Unable to load source :source', array(':source' => $source));
+								throw new \Ziminji\Core\Throwable\FileNotFound\Exception('Unable to load source :source', array(':source' => $source));
 							}
 							$this->contents = file_get_contents($source);
 						}
 						else {
-							throw new Kohana_InvalidArgument_Exception('Unrecognized data source type :type', array(':type' => $type));
+							throw new \Ziminji\Core\Throwable\InvalidArgument\Exception('Unrecognized data source type :type', array(':type' => $type));
 						}
 					}
 				}
@@ -160,9 +161,10 @@ namespace Ziminji\Core {
 		 * This function provides read-only access to certain properties.
 		 *
 		 * @access public
-		 * @param string $key the name of the property
-		 * @return mixed                                the value of the property
-		 * @throws Kohana_InvalidProperty_Exception     indicates that property is undefined or inaccessible
+		 * @param string $key                                       the name of the property
+		 * @return mixed                                            the value of the property
+		 * @throws \Ziminji\Core\Throwable\InvalidProperty\Exception indicates that property is undefined
+		 *                                                          or inaccessible
 		 */
 		public function __get($key) {
 			switch ($key) {
@@ -177,7 +179,7 @@ namespace Ziminji\Core {
 				case 'type':
 					return $this->type;
 				default:
-					throw new Kohana_InvalidProperty_Exception('Unknown property :key', array(':key' => $key));
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Unknown property :key', array(':key' => $key));
 			}
 		}
 
@@ -185,9 +187,10 @@ namespace Ziminji\Core {
 		 * This function sets the value for the specified key.
 		 *
 		 * @access public
-		 * @param string $key the name of the property
-		 * @return mixed                                the value of the property
-		 * @throws Kohana_InvalidProperty_Exception     indicates that property is undefined or inaccessible
+		 * @param string $key                                       the name of the property
+		 * @return mixed                                            the value of the property
+		 * @throws \Ziminji\Core\Throwable\InvalidProperty\Exception indicates that property is undefined
+		 *                                                          or inaccessible
 		 */
 		public function __set($key, $value) {
 			switch ($key) {
@@ -195,7 +198,7 @@ namespace Ziminji\Core {
 					$this->mime = (is_string($value)) ? $value : 'application/octet-stream';
 					break;
 				default:
-					throw new Kohana_InvalidProperty_Exception('Unknown property :key', array(':key' => $key));
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Unknown property :key', array(':key' => $key));
 			}
 		}
 
@@ -207,8 +210,8 @@ namespace Ziminji\Core {
 		 * eliminates the query string first and subsequently runs PATHINFO_EXTENSION on the clean path/url.
 		 *
 		 * @access protected
-		 * @param string $uri the URI
-		 * @return string                               the URI's file extension
+		 * @param string $uri                                       the URI
+		 * @return string                                           the URI's file extension
 		 *
 		 * @see http://www.php.net/manual/en/function.pathinfo.php
 		 */
@@ -225,8 +228,8 @@ namespace Ziminji\Core {
 		 * This function attempts to auto-detect the appropriate mime type using the URI's file extension.
 		 *
 		 * @access protected
-		 * @param string $uri the URI
-		 * @return string                               the mime type
+		 * @param string $uri                                       the URI
+		 * @return string                                           the mime type
 		 *
 		 * @see http://www.w3schools.com/media/media_mimeref.asp
 		 * @see http://www.php.net/manual/en/ref.fileinfo.php
@@ -244,8 +247,8 @@ namespace Ziminji\Core {
 		 *
 		 * @access protected
 		 * @static
-		 * @param string $url the URL to be tested
-		 * @return boolean                              whether the specified URL is active
+		 * @param string $url                                       the URL to be tested
+		 * @return boolean                                          whether the specified URL is active
 		 */
 		protected static function does_url_exists($url) {
 			$headers = @get_headers($url);

@@ -27,7 +27,7 @@ namespace Ziminji\Core {
 	 * @package Ziminji\Core
 	 * @version 2015-09-21
 	 */
-	class Credentials extends Kohana_Object {
+	class Credentials extends \Ziminji\Core\Object {
 
 		/**
 		 * This variable stores the user name.
@@ -49,8 +49,8 @@ namespace Ziminji\Core {
 		 * This constructor creates an instance of this class.
 		 *
 		 * @access public
-		 * @param string $username the user name
-		 * @param string $password the password
+		 * @param string $username                                  the user name
+		 * @param string $password                                  the password
 		 */
 		public function __construct($username, $password) {
 			$this->username = $username;
@@ -61,10 +61,10 @@ namespace Ziminji\Core {
 		 * This function provides read-only access to certain properties.
 		 *
 		 * @access public
-		 * @param string $key the name of the property
-		 * @return mixed                            the value of the property
-		 * @throws Kohana_InvalidProperty_Exception indicates that the specified property is
-		 *                                          either inaccessible or undefined
+		 * @param string $key                                       the name of the property
+		 * @return mixed                                            the value of the property
+		 * @throws \Ziminji\Core\Throwable\InvalidProperty\Exception indicates that the specified property is
+		 *                                                          either inaccessible or undefined
 		 */
 		public function __get($key) {
 			switch ($key) {
@@ -73,7 +73,7 @@ namespace Ziminji\Core {
 				case 'password':
 					return $this->password;
 				default:
-					throw new Kohana_InvalidProperty_Exception('Message: Unable to get the specified property. Reason: Property :key is either inaccessible or undefined.', array(':key' => $key));
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Unable to get the specified property. Reason: Property :key is either inaccessible or undefined.', array(':key' => $key));
 			}
 		}
 
@@ -81,7 +81,7 @@ namespace Ziminji\Core {
 		 * This function returns the components as an associated array.
 		 *
 		 * @access public
-		 * @return array                            the components
+		 * @return array                                            the components
 		 */
 		public function as_array() {
 			$array = array(

@@ -29,7 +29,7 @@ namespace Ziminji\Core {
 	 *
 	 * @see http://msdn.microsoft.com/en-us/library/system.net.mail.mailaddress.aspx
 	 */
-	class EmailAddress extends Kohana_Object {
+	class EmailAddress extends \Ziminji\Core\Object {
 
 		/**
 		 * This variable stores the email address.
@@ -51,13 +51,13 @@ namespace Ziminji\Core {
 		 * This constructor creates an instance of this class.
 		 *
 		 * @access public
-		 * @param string $email the email address
-		 * @param string $name the name
+		 * @param string $email                                     the email address
+		 * @param string $name                                      the name
 		 */
 		public function __construct($email, $name = '') {
 			$email = trim($email);
 			if (!preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/i', $email)) {
-				throw new Kohana_InvalidArgument_Exception('Message: Pattern mismatch. Reason: String is not an email address.', array(':email' => $email));
+				throw new \Ziminji\Core\Throwable\InvalidArgument\Exception('Message: Pattern mismatch. Reason: String is not an email address.', array(':email' => $email));
 			}
 			$this->email = $email;
 			$this->name = trim(preg_replace('/\R/', '', $name));
@@ -67,10 +67,10 @@ namespace Ziminji\Core {
 		 * This function provides read-only access to certain properties.
 		 *
 		 * @access public
-		 * @param string $key the name of the property
-		 * @return mixed                            the value of the property
-		 * @throws Kohana_InvalidProperty_Exception indicates that the specified property is
-		 *                                          either inaccessible or undefined
+		 * @param string $key                                       the name of the property
+		 * @return mixed                                            the value of the property
+		 * @throws \Ziminji\Core\Throwable\InvalidProperty\Exception indicates that the specified property
+		 *                                                          is either inaccessible or undefined
 		 */
 		public function __get($key) {
 			switch ($key) {
@@ -79,7 +79,7 @@ namespace Ziminji\Core {
 				case 'name':
 					return $this->name;
 				default:
-					throw new Kohana_InvalidProperty_Exception('Message: Unable to get the specified property. Reason: Property :key is either inaccessible or undefined.', array(':key' => $key));
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Unable to get the specified property. Reason: Property :key is either inaccessible or undefined.', array(':key' => $key));
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace Ziminji\Core {
 		 * This function returns the components formatted as a string.
 		 *
 		 * @access public
-		 * @return string                           the components formatted as a string
+		 * @return string                                           the components formatted as a string
 		 */
 		public function as_string() {
 			if (!empty($this->name)) {
@@ -100,7 +100,7 @@ namespace Ziminji\Core {
 		 * This function returns the components in an associated array.
 		 *
 		 * @access public
-		 * @return array                            the components stored in an array
+		 * @return array                                            the components stored in an array
 		 */
 		public function as_array() {
 			$array = array(

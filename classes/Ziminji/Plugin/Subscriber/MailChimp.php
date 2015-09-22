@@ -19,23 +19,25 @@
 
 namespace Ziminji\Core\Subscriber {
 
-	include_once(Kohana::find_file('vendor', 'WhatCounts/WhatCountsDriver', $ext = 'php'));
+	include_once(Kohana::find_file('vendor', 'MailChimp/MCAPI.class', $ext = 'php'));
 
 	/**
-	 * This class handles subscriptions to the What Counts mail service.
+	 * This class handles subscriptions to the Mail Chimp mail service.
 	 *
 	 * @access public
 	 * @class
 	 * @package Ziminji\Core\Subscriber
 	 * @version 2015-09-21
+	 *
+	 * @see http://admin.mailchimp.com/account/api
 	 */
-	class WhatCounts extends Kohana_Object implements Base_Subscriber_Interface {
+	class MailChimp extends \Ziminji\Core\Object implements Base_Subscriber_Interface {
 
 		/**
-		 * This variable stores an instance of the What Counts driver class.
+		 * This variable stores an instance of the Mail Chimp driver class.
 		 *
 		 * @access protected
-		 * @var WhatCountsDriver
+		 * @var MCAPI
 		 */
 		protected $driver = null;
 
@@ -61,15 +63,15 @@ namespace Ziminji\Core\Subscriber {
 		 * @access protected
 		 * @var array
 		 */
-		protected $data = array();
+		protected $data = null;
 
 		/**
 		 * This variable stores the content type of the body in the email message.
 		 *
 		 * @access protected
-		 * @var integer
+		 * @var string
 		 */
-		protected $content_type = 1; // 'text/plain'
+		protected $content_type = 'text';
 
 		/**
 		 * This variable stores whether an email notification will be sent.
@@ -102,8 +104,7 @@ namespace Ziminji\Core\Subscriber {
 		 * @param array $config the configuration array
 		 */
 		public function __construct($config) {
-			$credentials = $config['credentials'];
-			$this->driver = new WhatCountsDriver($credentials->username, $credentials->password);
+			$this->driver = new MCAPI($config['api-key']);
 			if (isset($config['mailing_list'])) {
 				$this->set_mailing_list($config['mailing_list']);
 			}
@@ -116,7 +117,7 @@ namespace Ziminji\Core\Subscriber {
 		 * @param string $mailing_list the key used to identify the mailing list
 		 */
 		public function set_mailing_list($mailing_list) {
-			$this->mailing_list = $this->driver->getListByName($mailing_list);
+			$this->mailing_list = $this->get_list_by_name($mailing_list);
 		}
 
 		/**
@@ -131,34 +132,34 @@ namespace Ziminji\Core\Subscriber {
 			if (is_array($data)) {
 				$this->data = array();
 				if (!empty($data['organization'])) {
-					//	$this->data['organization'] = $data['organization'];
+					$this->data['ORG'] = $data['organization'];
 				}
 				if (!empty($data['first_name'])) {
-					$this->data['first'] = $data['first_name'];
+					$this->data['FIRST_NAME'] = $data['first_name'];
 				}
 				if (!empty($data['last_name'])) {
-					$this->data['last'] = $data['last_name'];
+					$this->data['LAST_NAME'] = $data['last_name'];
 				}
 				if (!empty($data['address_1'])) {
-					$this->data['address'] = $data['address_1'];
+					$this->data['ADDRESS']['addr1'] = $data['address_1'];
 				}
 				if (!empty($data['address_2'])) {
-					$this->data['address2'] = $data['address_2'];
+					$this->data['ADDRESS']['addr2'] = $data['address_2'];
 				}
 				if (!empty($data['city'])) {
-					$this->data['city'] = $data['city'];
+					$this->data['ADDRESS']['city'] = $data['city'];
 				}
 				if (!empty($data['state'])) {
-					$this->data['state'] = $data['state'];
+					$this->data['ADDRESS']['state'] = $data['state'];
 				}
 				if (!empty($data['postal_code'])) {
-					$this->data['zip'] = $data['postal_code'];
+					$this->data['ADDRESS']['zip'] = $data['postal_code'];
 				}
 				if (!empty($data['country'])) {
-					$this->data['country'] = $data['country'];
+					$this->data['ADDRESS']['country'] = $data['country'];
 				}
 				if (!empty($data['phone'])) {
-					$this->data['phone'] = $data['phone'];
+					$this->data['PHONE'] = $data['phone'];
 				}
 			}
 			else {
@@ -176,13 +177,12 @@ namespace Ziminji\Core\Subscriber {
 		public function set_content_type($mime) {
 			switch (strtolower($mime)) {
 				case 'multipart/mixed':
-					$this->content_type = 99;
-					break;
 				case 'text/html':
-					$this->content_type = 2;
+					$this->content_type = 'html';
 					break;
+				case 'text/plain':
 				default:
-					$this->content_type = 1;
+					$this->content_type = 'text';
 					break;
 			}
 		}
@@ -216,30 +216,24 @@ namespace Ziminji\Core\Subscriber {
 		public function subscribe($force = false) {
 			try {
 				if (empty($this->mailing_list)) {
-					throw new Exception('Failed to unsubscribe because no mailing list has been set.');
+					throw new Exception('Failed to subscribe because no mailing list has been set.');
 				}
 				if (empty($this->subscriber)) {
-					throw new Exception("Failed to unsubscribe because no subscriber has been set.");
+					throw new Exception("Failed to subscribe because no subscriber has been set.");
 				}
-				$data = array();
-				$data[0] = $this->data;
-				$data[0]['email'] = rawurlencode($this->subscriber);
-				$force = (!$force) ? 0 : 1;
-				$response = $this->subscriber->subscribe($this->mailing_list['listID'], $data, $this->content_type, $force);
-				if (!(isset($response['isSuccess']) && $response['isSuccess'])) {
-					throw new Exception("Failed to subscribe because {$response['reason']}");
+
+				$do_notify = ($this->do_notify && is_null($this->mailer));
+
+				$result = $this->driver->listSubscribe($this->mailing_list, $this->subscriber, $this->data, $this->content_type, true, false, true, $do_notify);
+
+				if ($result === false) {
+					throw new Exception($this->driver->errorMessage, $this->driver->errorCode);
 				}
-				if ($this->do_notify) {
-					$mailer = $this->mailer;
-					if (is_null($mailer)) {
-						$mailer = new Mailer('WHAT_COUNTS');
-						$mailer->set_recipient($this->subscriber);
-						$mailer->set_subject('Welcome! Your email has been subscribed.');
-						$mailer->set_message('We have successfully subscribed this email to our mailing list.');
-					}
-					$sent = $mailer->send();
+
+				if ($this->do_notify && !is_null($this->mailer)) {
+					$sent = $this->mailer->send();
 					if (!$sent) {
-						$error = $mailer->get_error();
+						$error = $this->mailer->get_error();
 						throw new Exception($error['message'], $error['code']);
 					}
 				}
@@ -256,14 +250,13 @@ namespace Ziminji\Core\Subscriber {
 		}
 
 		/**
-		 * This function will unsubscribe the specified email address from the associated
-		 * mailing list.
+		 * This function will unsubscribe the specified email address from the specified mailing list.
 		 *
 		 * @access public
-		 * @param string $email the email address to be unsubscribed
-		 * @return boolean
+		 * @param boolean $delete whether to delete the subscription completely
+		 * @return boolean                          whether the subscriber was unsubscribed
 		 */
-		public function unsubscribe($email) {
+		public function unsubscribe($delete = false) {
 			try {
 				if (empty($this->mailing_list)) {
 					throw new Exception('Failed to unsubscribe because no mailing list has been set.');
@@ -271,22 +264,18 @@ namespace Ziminji\Core\Subscriber {
 				if (empty($this->subscriber)) {
 					throw new Exception("Failed to unsubscribe because no subscriber has been set.");
 				}
-				$data = 'email^' . rawurlencode($this->subscriber);
-				$response = $this->subscriber->unsubscribe($this->mailing_list['listID'], $data, 0);
-				if (!(isset($response['isSuccess']) && $response['isSuccess'])) {
-					throw new Exception("Failed to unsubscribe because {$response['reason']}");
+
+				$do_notify = ($this->do_notify && is_null($this->mailer));
+
+				$result = $this->driver->listUnsubscribe($this->mailing_list, $this->subscriber, $delete, $do_notify, $do_notify);
+				if ($result === false) {
+					throw new Exception($this->driver->errorMessage, $this->driver->errorCode);
 				}
-				if ($this->do_notify) {
-					$mailer = $this->mailer;
-					if (is_null($mailer)) {
-						$mailer = new Mailer('WHAT_COUNTS');
-						$mailer->set_recipient($this->subscriber);
-						$mailer->set_subject('Goodbye! Your email was unsubscribed.');
-						$mailer->set_message('We have successfully unsubscribed this email from our mailing list.');
-					}
-					$sent = $mailer->send();
+
+				if ($this->do_notify && !is_null($this->mailer)) {
+					$sent = $this->mailer->send();
 					if (!$sent) {
-						$error = $mailer->get_error();
+						$error = $this->mailer->get_error();
 						throw new Exception($error['message'], $error['code']);
 					}
 				}
@@ -306,10 +295,27 @@ namespace Ziminji\Core\Subscriber {
 		 * This function returns the last error reported.
 		 *
 		 * @access public
-		 * @return array                                the last error reported
+		 * @return array                            the last error reported
 		 */
 		public function get_error() {
 			return $this->error;
+		}
+
+		///////////////////////////////////////////////////////////////HELPERS//////////////////////////////////////////////////////////////
+
+		/**
+		 * This function is used to fetch the list's ID using its name.
+		 *
+		 * @access protected
+		 * @param string $name the list's name
+		 * @return string                           the list's ID
+		 */
+		protected function get_list_by_name($name) {
+			$lists = $this->driver->lists(array('list_name' => $name));
+			if (!empty($lists['data'])) {
+				return $lists['data'][0]['id']; // Just grab the first one since we are only expecting one result
+			}
+			return null;
 		}
 
 	}

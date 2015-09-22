@@ -27,7 +27,7 @@ namespace Ziminji\Core {
 	 * @package Ziminji\Core
 	 * @version 2015-09-21
 	 */
-	class SMS extends Kohana_Object {
+	class SMS extends \Ziminji\Core\Object {
 
 		const ALLTEL = '@message.alltel.com';
 		const ATT = '@txt.att.net';
@@ -92,8 +92,9 @@ namespace Ziminji\Core {
 		 * the text message.
 		 *
 		 * @access public
-		 * @param string $number the recipient's phone number
-		 * @param string $carrier the carrier that provides service to the recipient
+		 * @param string $number                                    the recipient's phone number
+		 * @param string $carrier                                   the carrier that provides service
+		 *                                                          to the recipient
 		 */
 		public function add_recipient($number, $carrier) {
 			$this->recipients[] = preg_replace('/(\D*)/', '', $number) . $carrier;
@@ -103,8 +104,9 @@ namespace Ziminji\Core {
 		 * This function sets the sender of the text message.
 		 *
 		 * @access public
-		 * @param string $number the sender's phone number
-		 * @param string $carrier the carrier that provides service to the sender
+		 * @param string $number                                    the sender's phone number
+		 * @param string $carrier                                   the carrier that provides service
+		 *                                                          to the sender
 		 */
 		public function set_sender($number, $carrier) {
 			$this->sender = preg_replace('/(\D*)/', '', $number) . $carrier;
@@ -114,7 +116,7 @@ namespace Ziminji\Core {
 		 * This function sets the subject line for the text message.
 		 *
 		 * @access public
-		 * @param string $subject the subject line
+		 * @param string $subject                                   the subject line
 		 */
 		public function set_subject($subject) {
 			$this->subject = $subject;
@@ -124,7 +126,7 @@ namespace Ziminji\Core {
 		 * This function sets the message that will be sent.
 		 *
 		 * @access public
-		 * @param string $message the message that will be sent
+		 * @param string $message                                   the message that will be sent
 		 */
 		public function set_message($message) {
 			$this->message = $message;
@@ -134,8 +136,9 @@ namespace Ziminji\Core {
 		 * This function attempts to send the text message to the recipient(s).
 		 *
 		 * @access public
-		 * @return boolean              returns TRUE if all of the recipient(s) are successfully
-		 *                              sent the text message; otherwise, FALSE
+		 * @return boolean                                          returns TRUE if all of the recipient(s)
+		 *                                                          are successfully sent the text message;
+		 *                                                          otherwise, FALSE
 		 */
 		public function send() {
 			foreach ($this->recipients as $recipient) {
@@ -155,7 +158,7 @@ namespace Ziminji\Core {
 		 * This function returns the last error reported.
 		 *
 		 * @access public
-		 * @return array                the last error reported
+		 * @return array                                            the last error reported
 		 */
 		public function get_error() {
 			return $this->error;
@@ -164,13 +167,14 @@ namespace Ziminji\Core {
 		/**
 		 * Returns a singleton instance of SMS.
 		 *
-		 * @param mixed                 configuration name and/or array
-		 * @return SMS
+		 * @access public
+		 * @static
+		 * @return \Ziminji\Core\SMS                                a singleton instance of this class
 		 */
 		public static function instance() {
 			static $singleton = null;
 			if (is_null($singleton)) {
-				$singleton = new SMS();
+				$singleton = new \Ziminji\Core\SMS();
 			}
 			return $singleton;
 		}

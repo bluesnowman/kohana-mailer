@@ -29,7 +29,7 @@ namespace Ziminji\Core {
 	 *
 	 * @see http://msdn.microsoft.com/en-us/library/system.net.mail.attachment.aspx
 	 */
-	class Attachment extends \Ziminji\DataSource {
+	class Attachment extends \Ziminji\Core\DataSource {
 
 		/**
 		 * This variable stores the name of the attachment.
@@ -44,9 +44,10 @@ namespace Ziminji\Core {
 		 * data source.
 		 *
 		 * @access public
-		 * @param enum $type the data source type (e.g. data, file, string, url)
-		 * @param mixed $source the data source
-		 * @param string $name the name of the attachment
+		 * @param enum $type                                        the data source type (e.g. data, file,
+		 *                                                          string, url)
+		 * @param mixed $source                                     the data source
+		 * @param string $name                                      the name of the attachment
 		 */
 		public function __construct($type, $source, $name) {
 			parent::__construct($type, $source);
@@ -57,10 +58,10 @@ namespace Ziminji\Core {
 		 * This function provides read-only access to certain properties.
 		 *
 		 * @access public
-		 * @param string $key the name of the property
-		 * @return string                           the value of the property
-		 * @throws Kohana_InvalidProperty_Exception indicates that the specified property is
-		 *                                          either inaccessible or undefined
+		 * @param string $key                                       the name of the property
+		 * @return string                                           the value of the property
+		 * @throws \Ziminji\Core\Throwable\InvalidProperty\Exception indicates that the specified property is
+		 *                                                          either inaccessible or undefined
 		 */
 		public function __get($key) {
 			switch ($key) {
@@ -77,7 +78,7 @@ namespace Ziminji\Core {
 				case 'type':
 					return $this->type;
 				default:
-					throw new Kohana_InvalidProperty_Exception('Message: Unable to get the specified property. Reason: Property :key is either inaccessible or undefined.', array(':key' => $key));
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Unable to get the specified property. Reason: Property :key is either inaccessible or undefined.', array(':key' => $key));
 			}
 		}
 

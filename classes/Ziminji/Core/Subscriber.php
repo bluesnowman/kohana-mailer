@@ -27,7 +27,7 @@ namespace Ziminji\Core {
 	 * @package Ziminji\Core
 	 * @version 2015-09-21
 	 */
-	class Subscriber extends Kohana_Object {
+	class Subscriber extends \Ziminji\Core\Object {
 
 		/**
 		 * This variable stores the configuration settings.

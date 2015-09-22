@@ -19,8 +19,6 @@
 
 namespace Ziminji\Core\Mailer {
 
-	include_once(Kohana::find_file('vendor', 'sdk-1.2.5/sdk.class', $ext = 'php'));
-
 	/**
 	 * This class send emails via the Amazon's SES mail service.
 	 *
@@ -28,16 +26,11 @@ namespace Ziminji\Core\Mailer {
 	 * @class
 	 * @package Ziminji\Core\Mailer
 	 * @version 2015-09-21
+	 *
+	 * @see http://www.phpclasses.org/browse/file/2446.html
+	 * @see http://www.webcheatsheet.com/PHP/send_email_text_html_attachment.php
 	 */
-	class Amazon extends Kohana_Object implements Base_Mailer_Interface {
-
-		/**
-		 * This variable stores an instance of the AmazonSES driver class.
-		 *
-		 * @access protected
-		 * @var AmazonSES
-		 */
-		protected $mailer = null;
+	class SendMail extends \Ziminji\Core\Object implements Base_Mailer_Interface {
 
 		/**
 		 * This variable stores a list of all recipients to received the email
@@ -133,10 +126,9 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param array $config the configuration array
-		 * @return Mailer_Interface         an instance of the driver class
+		 * @return Mailer_Interface             an instance of the driver class
 		 */
 		public function __construct($config) {
-			$this->mailer = new AmazonSES($config['api-key'], $config['secret']);
 			if (isset($config['sender'])) {
 				$this->set_sender($config['sender']);
 			}
@@ -164,7 +156,7 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param EmailAddress $address the email address and name
-		 * @return boolean                  whether the recipient was added
+		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_recipient(EmailAddress $address) {
 			$this->recipients[] = $address->as_string();
@@ -176,7 +168,7 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param EmailAddress $address the email address and name
-		 * @return boolean                  whether the recipient was added
+		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_cc(EmailAddress $address) {
 			$this->cc[] = $address->as_string();
@@ -188,7 +180,7 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param EmailAddress $address the email address and name
-		 * @return boolean                  whether the recipient was added
+		 * @return boolean                      whether the recipient was added
 		 */
 		public function add_bcc(EmailAddress $address) {
 			$this->bcc[] = $address->as_string();
@@ -200,7 +192,7 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param EmailAddress $address the email address and name
-		 * @return boolean                  whether the sender was set
+		 * @return boolean                      whether the sender was set
 		 */
 		public function set_sender(EmailAddress $address) {
 			$this->sender = $address->as_string();
@@ -212,7 +204,7 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param EmailAddress $address the email address and name
-		 * @return boolean                  whether the reply-to was set
+		 * @return boolean                      whether the reply-to was set
 		 */
 		public function set_reply_to(EmailAddress $address) {
 			$this->reply_to = $address->as_string();
@@ -240,7 +232,7 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param string $mime the content type (either "multipart/mixed", "text/html",
-		 *                                  or "text/plain")
+		 *                                      or "text/plain")
 		 */
 		public function set_content_type($mime) {
 			$this->content_type = strtolower($mime);
@@ -271,17 +263,11 @@ namespace Ziminji\Core\Mailer {
 		 *
 		 * @access public
 		 * @param Attachment $attachment the attachment to be added
-		 * @param boolean                   whether the attachment is attached to the email message
+		 * @param boolean                       whether the attachment is attached to the email message
 		 */
 		public function add_attachment(Attachment $attachment) {
-			// Amazon plans to add this feature (https://forums.aws.amazon.com/thread.jspa?threadID=59341)
-			$this->error = array(
-				'message' => 'Failed to add attachment because mail service does not support attachments',
-				'code' => 0
-			);
-			return false;
-			//$this->attachments[] = $attachment;
-			//return TRUE;
+			$this->attachments[] = $attachment;
+			return true;
 		}
 
 		/**
@@ -291,7 +277,7 @@ namespace Ziminji\Core\Mailer {
 		 * @param string $cid the ID used for accessing the image in the message
 		 * @param string $file the file name to the image
 		 * @param string $alias the file name given to the image
-		 * @return boolean                  whether the image was embedded
+		 * @return boolean                      whether the image was embedded
 		 */
 		public function set_embedded_image($cid, $file, $alias = '') {
 			$this->error = array(
@@ -305,15 +291,8 @@ namespace Ziminji\Core\Mailer {
 		 * This function attempts to send the email message to the recipient(s).
 		 *
 		 * @access public
-		 * @return boolean                  returns TRUE if all of the recipient(s) are successfully
-		 *                                  sent the email message; otherwise, FALSE
-		 *
-		 * @see http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/
-		 * @see http://docs.amazonwebservices.com/ses/latest/APIReference/index.html?API_SendRawEmail.html
-		 * @see http://www.webcheatsheet.com/PHP/send_email_text_html_attachment.php
-		 * @see http://www.daniweb.com/forums/thread2959.html
-		 * @see https://forums.aws.amazon.com/thread.jspa?threadID=59518&tstart=25
-		 * @see https://forums.aws.amazon.com/thread.jspa?threadID=59564&tstart=0
+		 * @return boolean                      returns TRUE if all of the recipient(s) are successfully
+		 *                                      sent the email message; otherwise, FALSE
 		 */
 		public function send() {
 			try {
@@ -326,22 +305,20 @@ namespace Ziminji\Core\Mailer {
 				if (empty($this->message)) {
 					throw new Exception('Failed to send email because no message has been set.');
 				}
-				$raw_email = "MIME-Version: 1.0\r\n";
-				$raw_email .= "Subject: {$this->subject}\r\n";
-				$raw_email .= "From: {$this->sender}\r\n";
+				$headers = "MIME-Version: 1.0\r\n";
+				$headers .= "From: {$this->sender}\r\n";
 				if (!empty($this->reply_to)) {
-					$raw_email .= "Reply-To: {$this->reply_to}\r\n";
+					$headers .= "Reply-To: {$this->reply_to}\r\n";
 				}
-				$raw_email .= 'To: ' . implode(', ', $this->recipients) . "\r\n";
 				if (count($this->cc) > 0) {
-					$raw_email .= 'Cc: ' . implode(', ', $this->cc) . "\r\n";
+					$headers .= 'Cc: ' . implode(', ', $this->cc) . "\r\n";
 				}
 				if (count($this->bcc) > 0) {
-					$raw_email .= 'Bcc: ' . implode(', ', $this->bcc) . "\r\n";
+					$headers .= 'Bcc: ' . implode(', ', $this->bcc) . "\r\n";
 				}
-				$raw_email .= 'Date: ' . date('r') . "\r\n";
-				$raw_email .= "Accept-Language: en-US\r\n";
-				$raw_email .= "Content-Language: en-US\r\n";
+				$headers .= 'Date: ' . date('r') . "\r\n";
+				$headers .= "Accept-Language: en-US\r\n";
+				$headers .= "Content-Language: en-US\r\n";
 
 				$boundary = md5(date('r', time()));
 
@@ -351,73 +328,71 @@ namespace Ziminji\Core\Mailer {
 					$content_type = 'multipart/mixed';
 				}
 
+				$message = '';
 				switch ($content_type) {
 					case 'multipart/mixed':
-						$raw_email .= "Content-Type: multipart/mixed; boundary=\"PHP-mixed-{$boundary}\"\r\n";
-						$raw_email .= "\r\n";
-						$raw_email .= "--PHP-mixed-{$boundary}\r\n";
+						$headers .= "Content-Type: multipart/mixed; boundary=\"PHP-mixed-{$boundary}\"\r\n";
+						//$headers .= "\r\n";
+						$message .= "--PHP-mixed-{$boundary}\r\n";
 						if ($this->content_type == 'text/html') {
-							$raw_email .= "Content-Type: multipart/alternative; boundary=\"PHP-alt-{$boundary}\"\r\n";
-							$raw_email .= "\r\n";
-							$raw_email .= "--PHP-alt-{$boundary}\r\n";
-							$raw_email .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
-							$raw_email .= "Content-Transfer-Encoding: 7bit\r\n";
-							$raw_email .= $this->message;
-							$raw_email .= "\r\n";
-							$raw_email .= "--PHP-alt-{$boundary}\r\n";
-							$raw_email .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-							$raw_email .= "Content-Transfer-Encoding: 7bit\r\n";
-							$raw_email .= "\r\n";
-							$raw_email .= (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
-							$raw_email .= "\r\n";
-							$raw_email .= "--PHP-alt-{$boundary}--\r\n";
+							$message .= "Content-Type: multipart/alternative; boundary=\"PHP-alt-{$boundary}\"\r\n";
+							$message .= "\r\n";
+							$message .= "--PHP-alt-{$boundary}\r\n";
+							$message .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
+							$message .= "Content-Transfer-Encoding: 7bit\r\n";
+							$message .= $this->message;
+							$message .= "\r\n";
+							$message .= "--PHP-alt-{$boundary}\r\n";
+							$message .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
+							$message .= "Content-Transfer-Encoding: 7bit\r\n";
+							$message .= "\r\n";
+							$message .= (!empty($this->alt_message)) ? $this->alt_message : strip_tags($this->message);
+							$message .= "\r\n";
+							$message .= "--PHP-alt-{$boundary}--\r\n";
 						}
 						else {
-							$raw_email .= "--PHP-mixed-{$boundary}\r\n";
-							$raw_email .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-							$raw_email .= "Content-Transfer-Encoding: 7bit\r\n";
-							$raw_email .= "\r\n";
-							$raw_email .= $this->message;
-							$raw_email .= "\r\n";
+							$message .= "--PHP-mixed-{$boundary}\r\n";
+							$message .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
+							$message .= "Content-Transfer-Encoding: 7bit\r\n";
+							$message .= "\r\n";
+							$message .= $this->message;
+							$message .= "\r\n";
 						}
 						foreach ($this->attachments as $attachment) {
-							$raw_email .= "--PHP-mixed-{$boundary}\r\n";
-							$raw_email .= "Content-Type: {$attachment->mime}; name=\"{$attachment->name}\"\r\n";
-							$raw_email .= "Content-Transfer-Encoding: {$attachment->encoding}\r\n";
-							$raw_email .= "Content-Disposition: attachment; filename=\"{$attachment->name}\"\r\n";
-							$raw_email .= "\r\n";
-							$raw_email .= $attachment->data;
-							$raw_email .= "\r\n";
+							$message .= "--PHP-mixed-{$boundary}\r\n";
+							$message .= "Content-Type: {$attachment->mime}; name=\"{$attachment->name}\"\r\n";
+							$message .= "Content-Transfer-Encoding: {$attachment->encoding}\r\n";
+							$message .= "Content-Disposition: attachment; filename=\"{$attachment->name}\"\r\n";
+							$message .= "\r\n";
+							$message .= $attachment->data;
+							$message .= "\r\n";
 						}
-						$raw_email .= "--PHP-mixed-{$boundary}--\r\n";
+						$message .= "--PHP-mixed-{$boundary}--\r\n";
 						break;
 					case 'text/html':
-						$raw_email .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
-						$raw_email .= "Content-Transfer-Encoding: 7bit\r\n";
-						$raw_email .= "\r\n";
-						$raw_email .= $this->message;
-						$raw_email .= "\r\n";
+						$headers .= "Content-Type: text/html; charset=\"us-ascii\"\r\n";
+						$headers .= "Content-Transfer-Encoding: 7bit\r\n";
+						$message .= "\r\n";
+						$message .= $this->message;
+						$message .= "\r\n";
 						break;
 					case 'text/plain':
-						$raw_email .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
-						$raw_email .= "Content-Transfer-Encoding: 7bit\r\n";
-						$raw_email .= "\r\n";
-						$raw_email .= $this->message;
-						$raw_email .= "\r\n";
+						$headers .= "Content-Type: text/plain; charset=\"us-ascii\"\r\n";
+						$headers .= "Content-Transfer-Encoding: 7bit\r\n";
+						$message .= "\r\n";
+						$message .= $this->message;
+						$message .= "\r\n";
 						break;
 					default:
 						throw new Exception('Mail service does not accept the specified content type.');
 						break;
 				}
 
-				$message = array(
-					'Data' => base64_encode($raw_email)
-				);
+				$recipients = implode(', ', $this->recipients);
 
-				$response = $this->mailer->send_raw_email($message);
-
-				if (!$response->isOK()) {
-					throw new Exception('Failed to deliver email. ' . Kohana::debug($response));
+				$sent = @mail($recipients, $this->subject, $message, $headers);
+				if (!$sent) {
+					throw new Exception('Failed to deliver email.');
 				}
 			}
 			catch (Exception $ex) {
@@ -449,25 +424,6 @@ namespace Ziminji\Core\Mailer {
 		 */
 		public function log($log) {
 			//$this->log = $log;
-		}
-
-		/**
-		 * This function sends a request to the specified email address for it to be verified.
-		 *
-		 * @access public
-		 * @param EmailAddress $address the email address to be verified
-		 * @return boolean                          whether the request was sent
-		 */
-		public function request_email_verification(EmailAddress $address) {
-			$response = $this->mailer->verify_email_address($address->email);
-			if (!$response->isOK()) {
-				$this->error = array(
-					'message' => 'Failed to send verification email. ' . Debug::vars($response),
-					'code' => 0
-				);
-				return false;
-			}
-			return true;
 		}
 
 	}

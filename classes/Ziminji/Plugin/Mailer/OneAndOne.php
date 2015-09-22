@@ -29,7 +29,7 @@ namespace Ziminji\Core\Mailer {
 	 * @package Ziminji\Core\Mailer
 	 * @version 2015-09-21
 	 */
-	class OneAndOne extends PHPMailerDriver implements Base_Mailer_Interface {
+	class OneAndOne extends \PHPMailer\Driver implements Base_Mailer_Interface {
 
 		/**
 		 * This constructor initializes the driver for this mail service.

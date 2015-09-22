@@ -27,7 +27,7 @@ namespace Ziminji\Core {
 	 * @package Ziminji\Core
 	 * @version 2015-09-21
 	 */
-	class Mailer extends Kohana_Object implements Base_Mailer_Interface {
+	class Mailer extends \Ziminji\Core\Object implements Base_Mailer_Interface {
 
 		/**
 		 * This variable stores an array of drivers.
