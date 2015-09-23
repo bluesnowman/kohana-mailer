@@ -55,15 +55,15 @@ namespace Ziminji\Core {
 			// Loads configurations
 			if (empty($config)) {
 				$group = 'mailer.default';
-				if (($this->config = Kohana::$config->load($group)) === null) {
-					throw new Kohana_Exception('Undefined group :group', array(':group' => $group));
+				if (($this->config = \Ziminji\Core\Config::query($group)) === null) {
+					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Undefined group :group', array(':group' => $group));
 				}
 			}
 			else {
 				if (is_string($config)) {
 					$group = 'mailer.' . $config;
-					if (($this->config = Kohana::$config->load($group)) === null) {
-						throw new Kohana_Exception('Undefined group :group', array(':group' => $group));
+					if (($this->config = \Ziminji\Core\Config::query($group)) === null) {
+						throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Undefined group :group', array(':group' => $group));
 					}
 				}
 				else {
@@ -79,7 +79,7 @@ namespace Ziminji\Core {
 
 			// Validates the driver
 			if (!($this->driver instanceof \Ziminji\Core\ISubscriber)) {
-				throw new Kohana_Exception('Cannot cast class :class to interface :interface', array(':class' => $driver, ':interface' => 'Base_Subscriber_Interface'));
+				throw new \Ziminji\Core\Throwable\ClassCast\Exception('Cannot cast class :class to interface :interface', array(':class' => $driver, ':interface' => 'ISubscriber'));
 			}
 		}
 

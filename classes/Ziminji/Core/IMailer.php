@@ -30,15 +30,6 @@ namespace Ziminji\Core {
 	interface IMailer {
 
 		/**
-		 * This function provides a way to pass specific options to the mail service.
-		 *
-		 * @access public
-		 * @param array $options                                    any special options for the mail
-		 *                                                          service
-		 */
-		public function set_options(array $options);
-
-		/**
 		 * This function adds a recipient to the list of recipients that will receive the email.
 		 *
 		 * @access public
@@ -66,30 +57,12 @@ namespace Ziminji\Core {
 		public function add_bcc(\Ziminji\Core\EmailAddress $address);
 
 		/**
-		 * This function sets the sender of the email message.
+		 * This function sets the alternative message that will be sent.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
-		 * @return boolean                                          whether the sender was set
+		 * @param string $message                                   the message that will be sent
 		 */
-		public function set_sender(\Ziminji\Core\EmailAddress $address);
-
-		/**
-		 * This function sets the reply to email address.
-		 *
-		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
-		 * @return boolean                                          whether the reply-to was set
-		 */
-		public function set_reply_to(\Ziminji\Core\EmailAddress $address);
-
-		/**
-		 * This function sets the subject line for the email message.
-		 *
-		 * @access public
-		 * @param string $subject                                   the subject line
-		 */
-		public function set_subject($subject);
+		public function set_alt_message($message);
 
 		/**
 		 * This function sets the content type for the email.
@@ -109,12 +82,39 @@ namespace Ziminji\Core {
 		public function set_message($message);
 
 		/**
-		 * This function sets the alternative message that will be sent.
+		 * This function provides a way to pass specific options to the mail service.
 		 *
 		 * @access public
-		 * @param string $message                                   the message that will be sent
+		 * @param array $options                                    any special options for the mail
+		 *                                                          service
 		 */
-		public function set_alt_message($message);
+		public function set_options(array $options);
+
+		/**
+		 * This function sets the reply to email address.
+		 *
+		 * @access public
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the reply-to was set
+		 */
+		public function set_reply_to(\Ziminji\Core\EmailAddress $address);
+
+		/**
+		 * This function sets the sender of the email message.
+		 *
+		 * @access public
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the sender was set
+		 */
+		public function set_sender(\Ziminji\Core\EmailAddress $address);
+
+		/**
+		 * This function sets the subject line for the email message.
+		 *
+		 * @access public
+		 * @param string $subject                                   the subject line
+		 */
+		public function set_subject($subject);
 
 		/**
 		 * This function adds an attachment to the email message.

@@ -25,7 +25,7 @@ namespace Ziminji\Core {
 	 * @access public
 	 * @class
 	 * @package Ziminji\Core
-	 * @version 2015-09-21
+	 * @version 2015-09-22
 	 *
 	 * @see http://developer.apple.com/library/mac/#documentation/Cocoa/Reference/Foundation/Classes/NSData_Class/Reference/Reference.html
 	 * @see http://download.oracle.com/javase/6/docs/api/javax/activation/DataSource.html
@@ -236,7 +236,7 @@ namespace Ziminji\Core {
 		 * @see http://php.net/manual/en/function.mime-content-type.php
 		 */
 		protected function get_mime_type($uri) {
-			if (($mimes = Kohana::$config->load('mimes.' . $this->get_extension($uri))) === null) {
+			if (($mimes = \Ziminji\Core\Config::query('MIME.' . $this->get_extension($uri))) === null) {
 				return 'application/octet-stream';
 			}
 			return $mimes[0];

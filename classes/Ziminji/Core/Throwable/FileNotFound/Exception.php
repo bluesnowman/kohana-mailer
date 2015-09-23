@@ -24,7 +24,7 @@ namespace Ziminji\Core\Throwable\FileNotFound {
 	 *
 	 * @access public
 	 * @class
-	 * @package Leap\Core\Throwable
+	 * @package Ziminji\Core\Throwable
 	 * @version 2015-09-21
 	 */
 	class Exception extends \Ziminji\Core\Throwable\Runtime\Exception {}

@@ -17,15 +17,15 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core\Throwable\InvalidProperty {
+namespace Ziminji\Core\Throwable\ClassCast {
 
 	/**
-	 * This class indicates that no property with the specified key was found.
+	 * This class indicates that a method is not implemented.
 	 *
 	 * @access public
 	 * @class
 	 * @package Ziminji\Core\Throwable
-	 * @version 2015-09-21
+	 * @version 2015-09-22
 	 */
 	class Exception extends \Ziminji\Core\Throwable\Runtime\Exception {}
 

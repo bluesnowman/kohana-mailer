@@ -24,7 +24,7 @@ namespace Ziminji\Core\Throwable\InvalidArgument {
 	 *
 	 * @access public
 	 * @class
-	 * @package Leap\Core\Throwable
+	 * @package Ziminji\Core\Throwable
 	 * @version 2015-09-21
 	 */
 	class Exception extends \InvalidArgumentException implements \Ziminji\Core\IObject {
@@ -77,12 +77,12 @@ namespace Ziminji\Core\Throwable\InvalidArgument {
 		 * This method returns whether the specified object is equal to the called object.
 		 *
 		 * @access public
-		 * @param \Leap\Core\IObject $object                        the object to be evaluated
+		 * @param \Ziminji\Core\IObject $object                     the object to be evaluated
 		 * @return boolean                                          whether the specified object is equal
 		 *                                                          to the called object
 		 */
 		public function __equals($object) {
-			return (($object !== NULL) && ($object instanceof \Leap\Core\Throwable\InvalidArgument\Exception) && ((string) serialize($object) == (string) serialize($this)));
+			return (($object !== NULL) && ($object instanceof \Ziminji\Core\Throwable\InvalidArgument\Exception) && ((string) serialize($object) == (string) serialize($this)));
 		}
 
 		/**
@@ -111,7 +111,7 @@ namespace Ziminji\Core\Throwable\InvalidArgument {
 		 * @return string                                           a string representing the exception
 		 */
 		public function __toString() {
-			return \Leap\Core\Throwable\Runtime\Exception::text($this);
+			return \Ziminji\Core\Throwable\Runtime\Exception::text($this);
 		}
 
 	}

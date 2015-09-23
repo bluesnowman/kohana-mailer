@@ -47,8 +47,8 @@ namespace Ziminji\Core {
 			$params = array();
 			// Loads all mailer configurations into array
 			if (func_num_args() < 1) {
-				$group = 'mailer.default';
-				if (($config = Kohana::$config->load($group)) === null) {
+				$group = 'Mailer.default';
+				if (($config = \Ziminji\Core\Config::query($group)) === null) {
 					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
 				}
 				$params[] = $config;
@@ -57,8 +57,8 @@ namespace Ziminji\Core {
 				$configs = func_get_args();
 				foreach ($configs as $config) {
 					if (is_string($config)) {
-						$group = 'mailer.' . $config;
-						if (($config = Kohana::$config->load($group)) === null) {
+						$group = 'Mailer.' . $config;
+						if (($config = \Ziminji\Core\Config::query($group)) === null) {
 							throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
 						}
 						$params[] = $config;
@@ -90,7 +90,7 @@ namespace Ziminji\Core {
 				$this->driver[$i] = new $driver($params[$i]);
 				// Validates the driver
 				if (!($this->driver[$i] instanceof \Ziminji\Core\IMailer)) {
-					throw new Kohana_ClassCast_Exception('Message: Cannot cast to interface.  Reason: Class :class does not implement interface :interface.', array(':class' => $driver, ':interface' => 'Base_Mailer_Interface'));
+					throw new \Ziminji\Core\Throwable\ClassCast\Exception('Message: Cannot cast to interface.  Reason: Class :class does not implement interface :interface.', array(':class' => $driver, ':interface' => 'IMailer'));
 				}
 			}
 		}
@@ -119,7 +119,7 @@ namespace Ziminji\Core {
 		public function add_mailing_list($list) {
 			if (is_string($list)) {
 				$group = 'mailer-lists.' . $list;
-				if (($list = Kohana::$config->load($group)) === null) {
+				if (($list = \Ziminji\Core\Config::query($group)) === null) {
 					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
 				}
 			}

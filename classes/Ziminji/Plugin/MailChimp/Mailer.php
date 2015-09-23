@@ -174,10 +174,10 @@ namespace Ziminji\Core\Mailer {
 		 * the email.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                      whether the recipient was added
 		 */
-		public function add_recipient(EmailAddress $address) {
+		public function add_recipient(\Ziminji\Core\EmailAddress $address) {
 			$this->recipients[] = $address;
 			return true;
 		}
@@ -186,10 +186,10 @@ namespace Ziminji\Core\Mailer {
 		 * This function will carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                      whether the recipient was added
 		 */
-		public function add_cc(EmailAddress $address) {
+		public function add_cc(\Ziminji\Core\EmailAddress $address) {
 			$this->recipients[] = $address;
 			return true;
 		}
@@ -198,10 +198,10 @@ namespace Ziminji\Core\Mailer {
 		 * This function will blind carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                      whether the recipient was added
 		 */
-		public function add_bcc(EmailAddress $address) {
+		public function add_bcc(\Ziminji\Core\EmailAddress $address) {
 			$this->recipients[] = $address;
 			return true;
 		}
@@ -210,10 +210,10 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the sender of the email message.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                      whether the sender was set
 		 */
-		public function set_sender(EmailAddress $address) {
+		public function set_sender(\Ziminji\Core\EmailAddress $address) {
 			$this->sender = $address;
 			return true;
 		}
@@ -222,10 +222,10 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the reply-to email address.
 		 *
 		 * @access public
-		 * @param EmailAddress $address the email address and name
+		 * @param \Ziminji\Core\EmailAddress $address the email address and name
 		 * @return boolean                      whether the reply-to was set
 		 */
-		public function set_reply_to(EmailAddress $address) {
+		public function set_reply_to(\Ziminji\Core\EmailAddress $address) {
 			return false;
 		}
 
