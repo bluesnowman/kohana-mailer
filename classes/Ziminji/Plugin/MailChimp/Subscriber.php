@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Copyright © 2011–2015 Spadefoot Team.
+ * Copyright © 2011–2012 Spadefoot Team.
+ * Copyright © 2015 Blue Snowman.
  *
- * Unless otherwise noted, Leap is licensed under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License
- * at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ namespace Ziminji\Core\Subscriber {
 	 *
 	 * @see http://admin.mailchimp.com/account/api
 	 */
-	class MailChimp extends \Ziminji\Core\Object implements Base_Subscriber_Interface {
+	class MailChimp extends \Ziminji\Core\Object implements \Ziminji\Core\ISubscriber {
 
 		/**
 		 * This variable stores an instance of the Mail Chimp driver class.

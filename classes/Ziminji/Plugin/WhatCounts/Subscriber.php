@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Copyright © 2011–2015 Spadefoot Team.
+ * Copyright © 2011–2012 Spadefoot Team.
+ * Copyright © 2015 Blue Snowman.
  *
- * Unless otherwise noted, Leap is licensed under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License
- * at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace Ziminji\Core\Subscriber {
 	 * @package Ziminji\Core\Subscriber
 	 * @version 2015-09-21
 	 */
-	class WhatCounts extends \Ziminji\Core\Object implements Base_Subscriber_Interface {
+	class WhatCounts extends \Ziminji\Core\Object implements \Ziminji\Core\ISubscriber {
 
 		/**
 		 * This variable stores an instance of the What Counts driver class.
@@ -83,7 +83,7 @@ namespace Ziminji\Core\Subscriber {
 		 * This variable stores an instance of the MailChimp driver class.
 		 *
 		 * @access protected
-		 * @var Mailer
+		 * @var \Ziminji\Core\IMailer
 		 */
 		protected $mailer = null;
 
@@ -103,7 +103,7 @@ namespace Ziminji\Core\Subscriber {
 		 */
 		public function __construct($config) {
 			$credentials = $config['credentials'];
-			$this->driver = new WhatCountsDriver($credentials->username, $credentials->password);
+			$this->driver = new \WhatCounts\Driver($credentials->username, $credentials->password);
 			if (isset($config['mailing_list'])) {
 				$this->set_mailing_list($config['mailing_list']);
 			}

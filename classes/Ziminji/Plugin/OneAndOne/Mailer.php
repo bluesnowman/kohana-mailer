@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Copyright © 2011–2015 Spadefoot Team.
+ * Copyright © 2011–2012 Spadefoot Team.
+ * Copyright © 2015 Blue Snowman.
  *
- * Unless otherwise noted, Leap is licensed under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License
- * at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace Ziminji\Core\Mailer {
 	 * @package Ziminji\Core\Mailer
 	 * @version 2015-09-21
 	 */
-	class OneAndOne extends \PHPMailer\Driver implements Base_Mailer_Interface {
+	class OneAndOne extends \PHPMailer\Driver implements \Ziminji\Core\IMailer {
 
 		/**
 		 * This constructor initializes the driver for this mail service.
@@ -50,7 +50,7 @@ namespace Ziminji\Core\Mailer {
 		 * @access public
 		 * @param array $options any special options for the mail service
 		 */
-		public function set_options(Array $options) {
+		public function set_options(array $options) {
 			// does nothing
 		}
 
