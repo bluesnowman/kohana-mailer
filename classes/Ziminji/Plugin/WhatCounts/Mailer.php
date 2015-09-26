@@ -116,8 +116,7 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This constructor initializes the driver for this mail service.
 		 *
 		 * @access public
-		 * @param array $config the configuration array
-		 * @return Mailer_Interface             an instance of the driver class
+		 * @param array $config                                     the configuration array
 		 */
 		public function __construct($config) {
 			$this->mailer = new WhatCountsDriver($config['credentials']->username, $config['credentials']->password);
@@ -137,7 +136,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function provides a way to pass specific options to the mail service.
 		 *
 		 * @access public
-		 * @param array $options any special options for the mail service
+		 * @param array $options                                    any special options for the mail
+		 *                                                          service
 		 */
 		public function set_options(array $options) {
 			// does nothing
@@ -148,8 +148,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * the email.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                      whether the recipient was added
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the recipient was added
 		 */
 		public function add_recipient(\Ziminji\Core\EmailAddress $address) {
 			$this->recipients[] = $address->email;
@@ -160,8 +160,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function will carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                      whether the recipient was added
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the recipient was added
 		 */
 		public function add_cc(\Ziminji\Core\EmailAddress $address) {
 			$this->recipients[] = $address->email;
@@ -172,8 +172,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function will blind carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                      whether the recipient was added
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the recipient was added
 		 */
 		public function add_bcc(\Ziminji\Core\EmailAddress $address) {
 			$this->recipients[] = $address->email;
@@ -184,8 +184,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the sender of the email message.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                      whether the sender was set
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the sender was set
 		 */
 		public function set_sender(\Ziminji\Core\EmailAddress $address) {
 			$this->sender = $address->as_string();
@@ -196,8 +196,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the reply-to email address.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                      whether the reply-to was set
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the reply-to was set
 		 */
 		public function set_reply_to(\Ziminji\Core\EmailAddress $address) {
 			$this->reply_to = $address->as_string();
@@ -208,7 +208,7 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the subject line for the email message.
 		 *
 		 * @access public
-		 * @param string $subject the subject line
+		 * @param string $subject                                   the subject line
 		 */
 		public function set_subject($subject) {
 			$this->subject = '(no subject)';
@@ -224,8 +224,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the content type for the email.
 		 *
 		 * @access public
-		 * @param string $mime the content type (either "multipart/mixed", "text/html",
-		 *                                      or "text/plain")
+		 * @param string $mime                                      the content type (either "multipart/mixed",
+		 *                                                          "text/html", or "text/plain")
 		 */
 		public function set_content_type($mime) {
 			/**
@@ -240,7 +240,7 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the message that will be sent.
 		 *
 		 * @access public
-		 * @param string $message the message that will be sent
+		 * @param string $message                                   the message that will be sent
 		 */
 		public function set_message($message) {
 			$this->message = (!is_null($message) && is_string($message)) ? $message : '';
@@ -250,7 +250,7 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the alternative message that will be sent.
 		 *
 		 * @access public
-		 * @param string $message the message that will be sent
+		 * @param string $message                                   the message that will be sent
 		 */
 		public function set_alt_message($message) {
 			$this->alt_message = (!is_null($message) && is_string($message)) ? $message : '';
@@ -260,10 +260,11 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function adds an attachment to the email message.
 		 *
 		 * @access public
-		 * @param Attachment $attachment the attachment to be added
-		 * @param boolean                       whether the attachment is attached to the email message
+		 * @param \Ziminji\Core\Attachment $attachment              the attachment to be added
+		 * @return boolean                                          whether the attachment is attached
+		 *                                                          to the email message
 		 */
-		public function add_attachment(Attachment $attachment) {
+		public function add_attachment(\Ziminji\Core\Attachment $attachment) {
 			$this->error = array(
 				'message' => 'Failed to add attachment because mail service does not support attachments',
 				'code' => 0
@@ -275,10 +276,11 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets an embedded image to the email message that will use the specified
 		 * content ID.
 		 *
-		 * @param string $cid the ID used for accessing the image in the message
-		 * @param string $file the file name to the image
-		 * @param string $alias the file name given to the image
-		 * @return boolean                      whether the image was embedded
+		 * @param string $cid                                       the ID used for accessing the image
+		 *                                                          in the message
+		 * @param string $file                                      the file name to the image
+		 * @param string $alias                                     the file name given to the image
+		 * @return boolean                                          whether the image was embedded
 		 */
 		public function set_embedded_image($cid, $file, $alias = '') {
 			$this->error = array(
@@ -292,8 +294,10 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function attempts to send the email message to the recipient(s).
 		 *
 		 * @access public
-		 * @return boolean                      returns TRUE if all of the recipient(s) are successfully
-		 *                                      sent the email message; otherwise, FALSE
+		 * @return boolean                                          returns TRUE if all of the recipient(s)
+		 *                                                          are successfully sent the email message;
+		 *                                                          otherwise, FALSE
+		 * @throws \Exception                                       indicates that the email failed to send
 		 */
 		public function send() {
 			try {
@@ -353,7 +357,7 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function returns the last error reported.
 		 *
 		 * @access public
-		 * @return array                            the last error reported
+		 * @return array                                            the last error reported
 		 */
 		public function get_error() {
 			return $this->error;
@@ -363,7 +367,7 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function will log the basic header information when an email is sent.
 		 *
 		 * @access public
-		 * @param boolean $log whether to log the email being sent
+		 * @param boolean $log                                      whether to log the email being sent
 		 */
 		public function log($log) {
 			//$this->log = $log;

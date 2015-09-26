@@ -99,7 +99,7 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * Initializes the driver for this mail service.
 		 *
 		 * @access public
-		 * @param array $config the configuration array
+		 * @param array $config                                     the configuration array
 		 */
 		public function __construct($config) {
 			$credentials = $config['credentials'];
@@ -113,7 +113,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function will set the mailing list.
 		 *
 		 * @access public
-		 * @param string $mailing_list the key used to identify the mailing list
+		 * @param string $mailing_list                              the key used to identify the mailing
+		 *                                                          list
 		 */
 		public function set_mailing_list($mailing_list) {
 			$this->mailing_list = $this->driver->getListByName($mailing_list);
@@ -123,8 +124,10 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the subscriber's email and related data.
 		 *
 		 * @access public
-		 * @param string $email the subscriber's email address
-		 * @param array $data the data to be sent (e.g. organization, first_name, last_name, address_1, address_2, city, state, postal_code, country, phone)
+		 * @param string $email                                     the subscriber's email address
+		 * @param array $data                                       the data to be sent (e.g. organization,
+		 *                                                          first_name, last_name, address_1, address_2,
+		 *                                                          city, state, postal_code, country, phone)
 		 */
 		public function set_subscriber($email, $data = null) {
 			$this->subscriber = $email;
@@ -170,8 +173,8 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function sets the content type for the email.
 		 *
 		 * @access public
-		 * @param string $mime the content type (either "multipart/mixed", "text/html",
-		 *                                          or "text/plain")
+		 * @param string $mime                                      the content type (either "multipart/mixed",
+		 *                                                          "text/html", or "text/plain")
 		 */
 		public function set_content_type($mime) {
 			switch (strtolower($mime)) {
@@ -191,35 +194,32 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * This function will cause a notification email to be sent upon success.
 		 *
 		 * @access public
-		 * @param boolean $send                      whether a notification email should be sent
-		 * @param Mailer $mailer the mail service to be used
+		 * @param boolean $send                                     whether a notification email should
+		 *                                                          be sent
+		 * @param \Ziminji\Core\IMailer $mailer                     the mail service to be used
 		 */
-		public function do_notify($send, $mailer = null) {
+		public function do_notify($send, \Ziminji\Core\IMailer $mailer = null) {
 			$this->do_notify = (is_bool($send)) ? $send : false;
-			if (is_a($mailer, 'Mailer')) {
-				$this->mailer = $mailer;
-			}
-			else {
-				$this->mailer = null;
-			}
+			$this->mailer = $mailer;
 		}
 
 		/**
 		 * This function will attempt to subscribe the recipient(s) to the specified mailing list.
 		 *
 		 * @access public
-		 * @param boolean $force whether the email address should be forcibly added to the
-		 *                                          specified mailing list
-		 * @return boolean                          whether the email address was successfully added to the
-		 *                                          specified mailing list
+		 * @param boolean $force                                    whether the email address should be
+		 *                                                          forcibly added to the specified mailing
+		 *                                                          list
+		 * @return boolean                                          whether the email address was successfully
+		 *                                                          added to the specified mailing list
 		 */
 		public function subscribe($force = false) {
 			try {
 				if (empty($this->mailing_list)) {
-					throw new Exception('Failed to unsubscribe because no mailing list has been set.');
+					throw new \Exception('Failed to unsubscribe because no mailing list has been set.');
 				}
 				if (empty($this->subscriber)) {
-					throw new Exception("Failed to unsubscribe because no subscriber has been set.");
+					throw new \Exception("Failed to unsubscribe because no subscriber has been set.");
 				}
 				$data = array();
 				$data[0] = $this->data;
@@ -227,7 +227,7 @@ namespace Ziminji\Plugin\WhatCounts {
 				$force = (!$force) ? 0 : 1;
 				$response = $this->subscriber->subscribe($this->mailing_list['listID'], $data, $this->content_type, $force);
 				if (!(isset($response['isSuccess']) && $response['isSuccess'])) {
-					throw new Exception("Failed to subscribe because {$response['reason']}");
+					throw new \Exception("Failed to subscribe because {$response['reason']}");
 				}
 				if ($this->do_notify) {
 					$mailer = $this->mailer;
@@ -240,11 +240,11 @@ namespace Ziminji\Plugin\WhatCounts {
 					$sent = $mailer->send();
 					if (!$sent) {
 						$error = $mailer->get_error();
-						throw new Exception($error['message'], $error['code']);
+						throw new \Exception($error['message'], $error['code']);
 					}
 				}
 			}
-			catch (Exception $ex) {
+			catch (\Exception $ex) {
 				$this->error = array(
 					'message' => $ex->getMessage(),
 					'code' => $ex->getCode()
@@ -260,21 +260,21 @@ namespace Ziminji\Plugin\WhatCounts {
 		 * mailing list.
 		 *
 		 * @access public
-		 * @param string $email the email address to be unsubscribed
-		 * @return boolean
+		 * @param string $email                                     the email address to be unsubscribed
+		 * @return boolean                                          whether the email address was unsubscribed
 		 */
 		public function unsubscribe($email) {
 			try {
 				if (empty($this->mailing_list)) {
-					throw new Exception('Failed to unsubscribe because no mailing list has been set.');
+					throw new \Exception('Failed to unsubscribe because no mailing list has been set.');
 				}
 				if (empty($this->subscriber)) {
-					throw new Exception("Failed to unsubscribe because no subscriber has been set.");
+					throw new \Exception("Failed to unsubscribe because no subscriber has been set.");
 				}
 				$data = 'email^' . rawurlencode($this->subscriber);
 				$response = $this->subscriber->unsubscribe($this->mailing_list['listID'], $data, 0);
 				if (!(isset($response['isSuccess']) && $response['isSuccess'])) {
-					throw new Exception("Failed to unsubscribe because {$response['reason']}");
+					throw new \Exception("Failed to unsubscribe because {$response['reason']}");
 				}
 				if ($this->do_notify) {
 					$mailer = $this->mailer;
@@ -287,11 +287,11 @@ namespace Ziminji\Plugin\WhatCounts {
 					$sent = $mailer->send();
 					if (!$sent) {
 						$error = $mailer->get_error();
-						throw new Exception($error['message'], $error['code']);
+						throw new \Exception($error['message'], $error['code']);
 					}
 				}
 			}
-			catch (Exception $ex) {
+			catch (\Exception $ex) {
 				$this->error = array(
 					'message' => $ex->getMessage(),
 					'code' => $ex->getCode()
