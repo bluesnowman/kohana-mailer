@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core\Mailer {
+namespace Ziminji\Plugin\Amazon {
 
 	include_once(Kohana::find_file('vendor', 'sdk-1.2.5/sdk.class', $ext = 'php'));
 
@@ -29,7 +29,7 @@ namespace Ziminji\Core\Mailer {
 	 * @package Ziminji\Core\Mailer
 	 * @version 2015-09-21
 	 */
-	class Amazon extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
+	class Mailer extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
 
 		/**
 		 * This variable stores an instance of the AmazonSES driver class.

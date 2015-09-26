@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core\Mailer {
+namespace Ziminji\Plugin\Mailgun {
 
 	/**
 	 * This class send emails via the Mailgun's email service.
@@ -25,9 +25,9 @@ namespace Ziminji\Core\Mailer {
 	 * @access public
 	 * @class
 	 * @package Ziminji\Core\Mailer
-	 * @version 2015-09-22
+	 * @version 2015-09-25
 	 */
-	class Mailgun extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
+	class Mailer extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
 
 		/**
 		 * This function provides a way to pass specific options to the mail service.

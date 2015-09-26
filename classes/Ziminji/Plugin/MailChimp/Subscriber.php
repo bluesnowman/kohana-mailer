@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core\Subscriber {
+namespace Ziminji\Plugin\MailChimp {
 
 	include_once(Kohana::find_file('vendor', 'MailChimp/MCAPI.class', $ext = 'php'));
 
@@ -31,13 +31,13 @@ namespace Ziminji\Core\Subscriber {
 	 *
 	 * @see http://admin.mailchimp.com/account/api
 	 */
-	class MailChimp extends \Ziminji\Core\Object implements \Ziminji\Core\ISubscriber {
+	class Subscriber extends \Ziminji\Core\Object implements \Ziminji\Core\ISubscriber {
 
 		/**
 		 * This variable stores an instance of the Mail Chimp driver class.
 		 *
 		 * @access protected
-		 * @var MCAPI
+		 * @var \MCAPI
 		 */
 		protected $driver = null;
 
@@ -85,7 +85,7 @@ namespace Ziminji\Core\Subscriber {
 		 * This variable stores an instance of the MailChimp driver class.
 		 *
 		 * @access protected
-		 * @var Mailer
+		 * @var \Ziminji\Core\IMailer
 		 */
 		protected $mailer = null;
 
@@ -101,10 +101,10 @@ namespace Ziminji\Core\Subscriber {
 		 * Initializes the driver for this mail service.
 		 *
 		 * @access public
-		 * @param array $config the configuration array
+		 * @param array $config                                     the configuration array
 		 */
 		public function __construct($config) {
-			$this->driver = new MCAPI($config['api-key']);
+			$this->driver = new \MCAPI($config['api-key']);
 			if (isset($config['mailing_list'])) {
 				$this->set_mailing_list($config['mailing_list']);
 			}
@@ -114,7 +114,8 @@ namespace Ziminji\Core\Subscriber {
 		 * This function will set the mailing list.
 		 *
 		 * @access public
-		 * @param string $mailing_list the key used to identify the mailing list
+		 * @param string $mailing_list                              the key used to identify the mailing
+		 *                                                          list
 		 */
 		public function set_mailing_list($mailing_list) {
 			$this->mailing_list = $this->get_list_by_name($mailing_list);
@@ -124,8 +125,10 @@ namespace Ziminji\Core\Subscriber {
 		 * This function sets the subscriber's email and related data.
 		 *
 		 * @access public
-		 * @param string $email the subscriber's email address
-		 * @param array $data the data to be sent (e.g. organization, first_name, last_name, address_1, address_2, city, state, postal_code, country, phone)
+		 * @param string $email                                     the subscriber's email address
+		 * @param array $data                                       the data to be sent (e.g. organization,
+		 *                                                          first_name, last_name, address_1, address_2,
+		 *                                                          city, state, postal_code, country, phone)
 		 */
 		public function set_subscriber($email, $data = null) {
 			$this->subscriber = $email;
@@ -171,8 +174,8 @@ namespace Ziminji\Core\Subscriber {
 		 * This function sets the content type for the email.
 		 *
 		 * @access public
-		 * @param string $mime the content type (either "multipart/mixed", "text/html",
-		 *                                          or "text/plain")
+		 * @param string $mime                                      the content type (either "multipart/mixed",
+		 *                                                          "text/html", or "text/plain")
 		 */
 		public function set_content_type($mime) {
 			switch (strtolower($mime)) {
@@ -191,35 +194,32 @@ namespace Ziminji\Core\Subscriber {
 		 * This function will cause a notification email to be sent upon success.
 		 *
 		 * @access public
-		 * @param boolean send                      whether a notification email should be sent
-		 * @param Mailer $mailer the mail service to be used
+		 * @param boolean $send                                     whether a notification email should
+		 *                                                          be sent
+		 * @param \Ziminji\Core\IMailer  $mailer                    the mail service to be used
 		 */
-		public function do_notify($send, $mailer = null) {
+		public function do_notify($send, \Ziminji\Core\IMailer $mailer = null) {
 			$this->do_notify = (is_bool($send)) ? $send : false;
-			if (is_a($mailer, 'Mailer')) {
-				$this->mailer = $mailer;
-			}
-			else {
-				$this->mailer = null;
-			}
+			$this->mailer = $mailer;
 		}
 
 		/**
 		 * This function will attempt to subscribe the recipient(s) to the specified mailing list.
 		 *
 		 * @access public
-		 * @param boolean $force whether the email address should be forcibly added to the
-		 *                                          specified mailing list
-		 * @return boolean                          whether the email address was successfully added to the
-		 *                                          specified mailing list
+		 * @param boolean $force                                    whether the email address should be
+		 *                                                          forcibly added to the specified mailing
+		 *                                                          list
+		 * @return boolean                                          whether the email address was successfully
+		 *                                                          added to the specified mailing list
 		 */
 		public function subscribe($force = false) {
 			try {
 				if (empty($this->mailing_list)) {
-					throw new Exception('Failed to subscribe because no mailing list has been set.');
+					throw new \Exception('Failed to subscribe because no mailing list has been set.');
 				}
 				if (empty($this->subscriber)) {
-					throw new Exception("Failed to subscribe because no subscriber has been set.");
+					throw new \Exception("Failed to subscribe because no subscriber has been set.");
 				}
 
 				$do_notify = ($this->do_notify && is_null($this->mailer));
@@ -227,18 +227,18 @@ namespace Ziminji\Core\Subscriber {
 				$result = $this->driver->listSubscribe($this->mailing_list, $this->subscriber, $this->data, $this->content_type, true, false, true, $do_notify);
 
 				if ($result === false) {
-					throw new Exception($this->driver->errorMessage, $this->driver->errorCode);
+					throw new \Exception($this->driver->errorMessage, $this->driver->errorCode);
 				}
 
 				if ($this->do_notify && !is_null($this->mailer)) {
 					$sent = $this->mailer->send();
 					if (!$sent) {
 						$error = $this->mailer->get_error();
-						throw new Exception($error['message'], $error['code']);
+						throw new \Exception($error['message'], $error['code']);
 					}
 				}
 			}
-			catch (Exception $ex) {
+			catch (\Exception $ex) {
 				$this->error = array(
 					'message' => $ex->getMessage(),
 					'code' => $ex->getCode()
@@ -253,34 +253,35 @@ namespace Ziminji\Core\Subscriber {
 		 * This function will unsubscribe the specified email address from the specified mailing list.
 		 *
 		 * @access public
-		 * @param boolean $delete whether to delete the subscription completely
-		 * @return boolean                          whether the subscriber was unsubscribed
+		 * @param boolean $delete                                   whether to delete the subscription
+		 *                                                          completely
+		 * @return boolean                                          whether the subscriber was unsubscribed
 		 */
 		public function unsubscribe($delete = false) {
 			try {
 				if (empty($this->mailing_list)) {
-					throw new Exception('Failed to unsubscribe because no mailing list has been set.');
+					throw new \Exception('Failed to unsubscribe because no mailing list has been set.');
 				}
 				if (empty($this->subscriber)) {
-					throw new Exception("Failed to unsubscribe because no subscriber has been set.");
+					throw new \Exception("Failed to unsubscribe because no subscriber has been set.");
 				}
 
 				$do_notify = ($this->do_notify && is_null($this->mailer));
 
 				$result = $this->driver->listUnsubscribe($this->mailing_list, $this->subscriber, $delete, $do_notify, $do_notify);
 				if ($result === false) {
-					throw new Exception($this->driver->errorMessage, $this->driver->errorCode);
+					throw new \Exception($this->driver->errorMessage, $this->driver->errorCode);
 				}
 
 				if ($this->do_notify && !is_null($this->mailer)) {
 					$sent = $this->mailer->send();
 					if (!$sent) {
 						$error = $this->mailer->get_error();
-						throw new Exception($error['message'], $error['code']);
+						throw new \Exception($error['message'], $error['code']);
 					}
 				}
 			}
-			catch (Exception $ex) {
+			catch (\Exception $ex) {
 				$this->error = array(
 					'message' => $ex->getMessage(),
 					'code' => $ex->getCode()
@@ -295,7 +296,7 @@ namespace Ziminji\Core\Subscriber {
 		 * This function returns the last error reported.
 		 *
 		 * @access public
-		 * @return array                            the last error reported
+		 * @return array                                            the last error reported
 		 */
 		public function get_error() {
 			return $this->error;
@@ -307,8 +308,8 @@ namespace Ziminji\Core\Subscriber {
 		 * This function is used to fetch the list's ID using its name.
 		 *
 		 * @access protected
-		 * @param string $name the list's name
-		 * @return string                           the list's ID
+		 * @param string $name                                      the list's name
+		 * @return string                                           the list's ID
 		 */
 		protected function get_list_by_name($name) {
 			$lists = $this->driver->lists(array('list_name' => $name));

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core\Subscriber {
+namespace Ziminji\Plugin\WhatCounts {
 
 	include_once(Kohana::find_file('vendor', 'WhatCounts/WhatCountsDriver', $ext = 'php'));
 
@@ -26,10 +26,10 @@ namespace Ziminji\Core\Subscriber {
 	 *
 	 * @access public
 	 * @class
-	 * @package Ziminji\Core\Subscriber
-	 * @version 2015-09-21
+	 * @package Ziminji\Plugin\WhatCounts
+	 * @version 2015-09-25
 	 */
-	class WhatCounts extends \Ziminji\Core\Object implements \Ziminji\Core\ISubscriber {
+	class Subscriber extends \Ziminji\Core\Object implements \Ziminji\Core\ISubscriber {
 
 		/**
 		 * This variable stores an instance of the What Counts driver class.
@@ -191,7 +191,7 @@ namespace Ziminji\Core\Subscriber {
 		 * This function will cause a notification email to be sent upon success.
 		 *
 		 * @access public
-		 * @param boolean send                      whether a notification email should be sent
+		 * @param boolean $send                      whether a notification email should be sent
 		 * @param Mailer $mailer the mail service to be used
 		 */
 		public function do_notify($send, $mailer = null) {

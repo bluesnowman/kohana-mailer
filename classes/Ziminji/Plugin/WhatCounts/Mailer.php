@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core\Mailer {
+namespace Ziminji\Plugin\WhatCounts {
 
 	include_once(Kohana::find_file('vendor', 'WhatCounts/WhatCountsDriver', $ext = 'php'));
 
@@ -26,10 +26,10 @@ namespace Ziminji\Core\Mailer {
 	 *
 	 * @access public
 	 * @class
-	 * @package Ziminji\Core\Mailer
-	 * @version 2015-09-21
+	 * @package Ziminji\Plugin\WhatCounts
+	 * @version 2015-09-25
 	 */
-	class WhatCounts extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
+	class Mailer extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
 
 		/**
 		 * This variable stores an instance of the What Counts driver class.
@@ -298,16 +298,16 @@ namespace Ziminji\Core\Mailer {
 		public function send() {
 			try {
 				if (!isset($this->mailing_list['listID'])) {
-					throw new Exception('Failed to send email because no mailing list has been set.');
+					throw new \Exception('Failed to send email because no mailing list has been set.');
 				}
 				if (empty($this->sender)) {
-					throw new Exception('Failed to send email because no sender has been set.');
+					throw new \Exception('Failed to send email because no sender has been set.');
 				}
 				if (empty($this->recipients)) {
-					throw new Exception('Failed to send email because no recipient has been set.');
+					throw new \Exception('Failed to send email because no recipient has been set.');
 				}
 				if (empty($this->message)) {
-					throw new Exception('Failed to send email because no message has been set.');
+					throw new \Exception('Failed to send email because no message has been set.');
 				}
 				$message = '';
 				$html_message = '';
@@ -335,11 +335,11 @@ namespace Ziminji\Core\Mailer {
 					$sent = $this->mailer->send($this->mailing_list['listID'], $recipient, $format, $this->reply_to, $template_id, $message, $text_message, $html_message, $this->sender, $this->subject, $data);
 					if (!$sent) {
 						// TODO Modify vendor/WhatCounts/WhatCountsDriver.php to get the error message from the response variable
-						throw new Exception("Failed to send message to: {$recipient}");
+						throw new \Exception("Failed to send message to: {$recipient}");
 					}
 				}
 			}
-			catch (Exception $ex) {
+			catch (\Exception $ex) {
 				$this->error = array(
 					'message' => $ex->getMessage(),
 					'code' => $ex->getCode()

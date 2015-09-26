@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-namespace Ziminji\Core\Mailer {
+namespace Ziminji\Plugin\OneAndOne {
 
 	include_once(Kohana::find_file('vendor', 'PHPMailer/PHPMailerDriver', $ext = 'php'));
 
@@ -26,17 +26,16 @@ namespace Ziminji\Core\Mailer {
 	 *
 	 * @access public
 	 * @class
-	 * @package Ziminji\Core\Mailer
-	 * @version 2015-09-21
+	 * @package Ziminji\Plugin\OneAndOne
+	 * @version 2015-09-25
 	 */
-	class OneAndOne extends \PHPMailer\Driver implements \Ziminji\Core\IMailer {
+	class Mailer extends \PHPMailer\Driver implements \Ziminji\Core\IMailer {
 
 		/**
 		 * This constructor initializes the driver for this mail service.
 		 *
 		 * @access public
-		 * @param array $config the configuration array
-		 * @return Mailer_Interface             an instance of the driver class
+		 * @param array $config                                     the configuration array
 		 */
 		public function __construct($config) {
 			parent::__construct($config['uri']['host'], $config['uri']['port'], $config['credentials']);
@@ -48,7 +47,7 @@ namespace Ziminji\Core\Mailer {
 		 * This function provides a way to pass specific options to the mail service.
 		 *
 		 * @access public
-		 * @param array $options any special options for the mail service
+		 * @param array $options                                    any special options for the mail service
 		 */
 		public function set_options(array $options) {
 			// does nothing
