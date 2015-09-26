@@ -163,8 +163,8 @@ namespace Ziminji\Core\Mailer {
 		 * the email.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                  whether the recipient was added
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the recipient was added
 		 */
 		public function add_recipient(\Ziminji\Core\EmailAddress $address) {
 			$this->recipients[] = $address->as_string();
@@ -175,8 +175,8 @@ namespace Ziminji\Core\Mailer {
 		 * This function will carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                  whether the recipient was added
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the recipient was added
 		 */
 		public function add_cc(\Ziminji\Core\EmailAddress $address) {
 			$this->cc[] = $address->as_string();
@@ -187,8 +187,8 @@ namespace Ziminji\Core\Mailer {
 		 * This function will blind carbon copy the specified email account.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                  whether the recipient was added
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the recipient was added
 		 */
 		public function add_bcc(\Ziminji\Core\EmailAddress $address) {
 			$this->bcc[] = $address->as_string();
@@ -199,8 +199,8 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the sender of the email message.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                  whether the sender was set
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the sender was set
 		 */
 		public function set_sender(\Ziminji\Core\EmailAddress $address) {
 			$this->sender = $address->as_string();
@@ -211,8 +211,8 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the reply-to email address.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address and name
-		 * @return boolean                  whether the reply-to was set
+		 * @param \Ziminji\Core\EmailAddress $address               the email address and name
+		 * @return boolean                                          whether the reply-to was set
 		 */
 		public function set_reply_to(\Ziminji\Core\EmailAddress $address) {
 			$this->reply_to = $address->as_string();
@@ -223,7 +223,7 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the subject line for the email message.
 		 *
 		 * @access public
-		 * @param string $subject the subject line
+		 * @param string $subject                                   the subject line
 		 */
 		public function set_subject($subject) {
 			$this->subject = '(no subject)';
@@ -239,8 +239,8 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the content type for the email.
 		 *
 		 * @access public
-		 * @param string $mime the content type (either "multipart/mixed", "text/html",
-		 *                                  or "text/plain")
+		 * @param string $mime                                      the content type (either "multipart/mixed",
+		 *                                                          "text/html", or "text/plain")
 		 */
 		public function set_content_type($mime) {
 			$this->content_type = strtolower($mime);
@@ -250,7 +250,7 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the message that will be sent.
 		 *
 		 * @access public
-		 * @param string $message the message that will be sent
+		 * @param string $message                                   the message that will be sent
 		 */
 		public function set_message($message) {
 			$this->message = (!is_null($message) && is_string($message)) ? $message : '';
@@ -260,7 +260,7 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets the alternative message that will be sent.
 		 *
 		 * @access public
-		 * @param string $message the message that will be sent
+		 * @param string $message                                   the message that will be sent
 		 */
 		public function set_alt_message($message) {
 			$this->alt_message = (!is_null($message) && is_string($message)) ? $message : '';
@@ -270,10 +270,11 @@ namespace Ziminji\Core\Mailer {
 		 * This function adds an attachment to the email message.
 		 *
 		 * @access public
-		 * @param Attachment $attachment the attachment to be added
-		 * @param boolean                   whether the attachment is attached to the email message
+		 * @param \Ziminji\Core\Attachment $attachment              the attachment to be added
+		 * @return boolean                                          whether the attachment is attached
+		 *                                                          to the email message
 		 */
-		public function add_attachment(Attachment $attachment) {
+		public function add_attachment(\Ziminji\Core\Attachment $attachment) {
 			// Amazon plans to add this feature (https://forums.aws.amazon.com/thread.jspa?threadID=59341)
 			$this->error = array(
 				'message' => 'Failed to add attachment because mail service does not support attachments',
@@ -288,10 +289,12 @@ namespace Ziminji\Core\Mailer {
 		 * This function sets an embedded image to the email message that will use the specified
 		 * content ID.
 		 *
-		 * @param string $cid the ID used for accessing the image in the message
-		 * @param string $file the file name to the image
-		 * @param string $alias the file name given to the image
-		 * @return boolean                  whether the image was embedded
+		 * @access public
+		 * @param string $cid                                       the ID used for accessing the image
+		 *                                                          in the message
+		 * @param string $file                                      the file name to the image
+		 * @param string $alias                                     the file name given to the image
+		 * @return boolean                                          whether the image was embedded
 		 */
 		public function set_embedded_image($cid, $file, $alias = '') {
 			$this->error = array(
@@ -305,8 +308,10 @@ namespace Ziminji\Core\Mailer {
 		 * This function attempts to send the email message to the recipient(s).
 		 *
 		 * @access public
-		 * @return boolean                  returns TRUE if all of the recipient(s) are successfully
-		 *                                  sent the email message; otherwise, FALSE
+		 * @return boolean                                          returns TRUE if all of the recipient(s)
+		 *                                                          are successfully sent the email message;
+		 *                                                          otherwise, FALSE
+		 * @throws \Exception                                       indicates the email failed to send
 		 *
 		 * @see http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/
 		 * @see http://docs.amazonwebservices.com/ses/latest/APIReference/index.html?API_SendRawEmail.html
@@ -318,13 +323,13 @@ namespace Ziminji\Core\Mailer {
 		public function send() {
 			try {
 				if (empty($this->sender)) {
-					throw new Exception('Failed to send email because no sender has been set.');
+					throw new \Exception('Failed to send email because no sender has been set.');
 				}
 				if (empty($this->recipients)) {
-					throw new Exception('Failed to send email because no recipient has been set.');
+					throw new \Exception('Failed to send email because no recipient has been set.');
 				}
 				if (empty($this->message)) {
-					throw new Exception('Failed to send email because no message has been set.');
+					throw new \Exception('Failed to send email because no message has been set.');
 				}
 				$raw_email = "MIME-Version: 1.0\r\n";
 				$raw_email .= "Subject: {$this->subject}\r\n";
@@ -406,7 +411,7 @@ namespace Ziminji\Core\Mailer {
 						$raw_email .= "\r\n";
 						break;
 					default:
-						throw new Exception('Mail service does not accept the specified content type.');
+						throw new \Exception('Mail service does not accept the specified content type.');
 						break;
 				}
 
@@ -417,10 +422,10 @@ namespace Ziminji\Core\Mailer {
 				$response = $this->mailer->send_raw_email($message);
 
 				if (!$response->isOK()) {
-					throw new Exception('Failed to deliver email. ' . Kohana::debug($response));
+					throw new \Exception('Failed to deliver email. ' . Debug::vars($response));
 				}
 			}
-			catch (Exception $ex) {
+			catch (\Exception $ex) {
 				$this->error = array(
 					'message' => $ex->getMessage(),
 					'code' => $ex->getCode()
@@ -435,7 +440,7 @@ namespace Ziminji\Core\Mailer {
 		 * This function returns the last error reported.
 		 *
 		 * @access public
-		 * @return array                            the last error reported
+		 * @return array                                            the last error reported
 		 */
 		public function get_error() {
 			return $this->error;
@@ -445,7 +450,7 @@ namespace Ziminji\Core\Mailer {
 		 * This function will log the basic header information when an email is sent.
 		 *
 		 * @access public
-		 * @param boolean $log whether to log the email being sent
+		 * @param boolean $log                                      whether to log the email being sent
 		 */
 		public function log($log) {
 			//$this->log = $log;
@@ -455,8 +460,8 @@ namespace Ziminji\Core\Mailer {
 		 * This function sends a request to the specified email address for it to be verified.
 		 *
 		 * @access public
-		 * @param \Ziminji\Core\EmailAddress $address the email address to be verified
-		 * @return boolean                          whether the request was sent
+		 * @param \Ziminji\Core\EmailAddress $address               the email address to be verified
+		 * @return boolean                                          whether the request was sent
 		 */
 		public function request_email_verification(\Ziminji\Core\EmailAddress $address) {
 			$response = $this->mailer->verify_email_address($address->email);

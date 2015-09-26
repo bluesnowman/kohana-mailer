@@ -50,18 +50,20 @@ namespace Ziminji\Core {
 		 *
 		 * @access public
 		 * @param array $config                                     the configuration array
+		 * @throws \Ziminji\Core\Throwable\InvalidProperty\Exception indicates that a property is invalid
+		 * @throws \Ziminji\Core\Throwable\ClassCast\Exception      indicates that driver is not a subscriber
 		 */
 		public function __construct($config = array()) {
 			// Loads configurations
 			if (empty($config)) {
-				$group = 'mailer.default';
+				$group = 'Mailer.default';
 				if (($this->config = \Ziminji\Core\Config::query($group)) === null) {
 					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Undefined group :group', array(':group' => $group));
 				}
 			}
 			else {
 				if (is_string($config)) {
-					$group = 'mailer.' . $config;
+					$group = 'Mailer.' . $config;
 					if (($this->config = \Ziminji\Core\Config::query($group)) === null) {
 						throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Undefined group :group', array(':group' => $group));
 					}
@@ -72,7 +74,7 @@ namespace Ziminji\Core {
 			}
 
 			// Sets the driver class name
-			$driver = 'Subscriber_' . $this->config['driver'];
+			$driver = '\\Ziminji\\Plugin\\' . $this->config['driver'] . '\\Subscriber';
 
 			// Initializes the driver
 			$this->driver = new $driver($this->config);

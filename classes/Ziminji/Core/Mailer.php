@@ -25,7 +25,7 @@ namespace Ziminji\Core {
 	 * @access public
 	 * @class
 	 * @package Ziminji\Core
-	 * @version 2015-09-21
+	 * @version 2015-09-25
 	 */
 	class Mailer extends \Ziminji\Core\Object implements \Ziminji\Core\IMailer {
 
@@ -75,17 +75,17 @@ namespace Ziminji\Core {
 			for ($i = 0; $i < count($params); $i++) {
 				// Wraps the driver's credentials
 				if (isset($params[$i]['credentials'])) {
-					$params[$i]['credentials'] = new Credentials($params[$i]['credentials']['username'], $params[$i]['credentials']['password']);
+					$params[$i]['credentials'] = new \Ziminji\Core\Credentials($params[$i]['credentials']['username'], $params[$i]['credentials']['password']);
 				}
 				// Wraps the driver's default email address for the sender
 				if (isset($params[$i]['sender'])) {
 					if (!isset($params[$i]['sender']['name'])) {
 						$params[$i]['sender']['name'] = '';
 					}
-					$params[$i]['sender'] = new EmailAddress($params[$i]['sender']['email'], $params[$i]['sender']['name']);
+					$params[$i]['sender'] = new \Ziminji\Core\EmailAddress($params[$i]['sender']['email'], $params[$i]['sender']['name']);
 				}
 				// Creates the driver class name
-				$driver = 'Mailer_' . $params[$i]['driver'];
+				$driver = '\\Ziminji\\Plugin\\' . $params[$i]['driver'] . '\\Mailer';
 				// Initializes the driver
 				$this->driver[$i] = new $driver($params[$i]);
 				// Validates the driver
@@ -118,7 +118,7 @@ namespace Ziminji\Core {
 		 */
 		public function add_mailing_list($list) {
 			if (is_string($list)) {
-				$group = 'mailer-lists.' . $list;
+				$group = 'MailerLists.' . $list;
 				if (($list = \Ziminji\Core\Config::query($group)) === null) {
 					throw new \Ziminji\Core\Throwable\InvalidProperty\Exception('Message: Cannot load configuration. Reason: Configuration group :group is undefined.', array(':group' => $group));
 				}
@@ -377,7 +377,10 @@ namespace Ziminji\Core {
 		 * @return boolean                                          whether the request was sent
 		 */
 		public function request_email_verification(\Ziminji\Core\EmailAddress $address) {
-			return $this->driver[0]->request_email_verification($address);
+			if (isset($this->driver[0])) {
+				return $this->driver[0]->request_email_verification($address);
+			}
+			return false;
 		}
 
 	}
